@@ -1527,14 +1527,14 @@ async function callAI(prompt) {
   const apiKey = getApiKey();
   if (!apiKey) throw new Error('설정에서 Anthropic API Key(sk-ant-...)를 먼저 입력해주세요.');
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type':         'application/json',
-      'x-api-key':            apiKey,
-      'anthropic-version':    '2023-06-01',
-      'anthropic-dangerous-direct-browser-calls': 'true'
-    },
+  const res = await fetch('https://anthropic-proxy.8989hye.workers.dev', {
+  method: 'POST',
+  headers: {
+    'Content-Type':      'application/json',
+    'x-api-key':         apiKey,
+    'anthropic-version': '2023-06-01',
+    // dangerous 헤더 삭제
+  },
     body: JSON.stringify({
       model:      'claude-sonnet-4-20250514',
       max_tokens: 2000,
