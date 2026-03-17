@@ -535,10 +535,6 @@
       <span class="nav-icon">📄</span>
       <span class="nav-label">리셀러 제안서</span>
     </div>
-    <div class="nav-item" onclick="goTo('quiz')" id="nav-quiz">
-      <span class="nav-icon">🎯</span>
-      <span class="nav-label">제품 지식 퀴즈</span>
-    </div>
     <div class="nav-item" onclick="goTo('deal')" id="nav-deal">
       <span class="nav-icon">📊</span>
       <span class="nav-label">딜 등록 트래커</span>
@@ -556,6 +552,14 @@
       <span class="nav-icon">🗂️</span>
       <span class="nav-label">히스토리</span>
       <span class="nav-badge" id="history-badge">0</span>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">학습</div>
+    <div class="nav-item" onclick="goTo('quiz')" id="nav-quiz">
+      <span class="nav-icon">🎯</span>
+      <span class="nav-label">제품 지식 퀴즈</span>
     </div>
   </div>
 
@@ -752,22 +756,28 @@
     <!-- HOME -->
     <div class="quiz-screen active" id="q-screen-home">
       <div class="card">
+        <!-- 구글시트 동기화 상태 배너 -->
+        <div id="quiz-sheet-banner" style="display:none;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);margin-bottom:1.25rem;font-size:12px;color:var(--text2);">
+          <span id="quiz-sheet-icon">📋</span>
+          <span id="quiz-sheet-msg">구글시트에서 문제를 불러오는 중...</span>
+          <button onclick="loadQuizFromSheet()" style="margin-left:auto;font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;">새로고침</button>
+        </div>
         <div style="margin-bottom:1.25rem;">
           <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">벤더 선택 (복수 가능)</div>
           <div class="quiz-vendor-grid">
             <div class="quiz-vendor-card" data-v="NVIDIA" onclick="toggleQuizVendor(this)">
               <div class="vendor-logo-label nvidia">NVIDIA</div>
-              <div class="vendor-q-count">17문제</div>
+              <div class="vendor-q-count" id="qcount-NVIDIA">17문제</div>
               <div class="vendor-check-mark">✓ 선택됨</div>
             </div>
             <div class="quiz-vendor-card" data-v="Dell" onclick="toggleQuizVendor(this)">
               <div class="vendor-logo-label dell">Dell</div>
-              <div class="vendor-q-count">16문제</div>
+              <div class="vendor-q-count" id="qcount-Dell">16문제</div>
               <div class="vendor-check-mark">✓ 선택됨</div>
             </div>
             <div class="quiz-vendor-card" data-v="Unity" onclick="toggleQuizVendor(this)">
               <div class="vendor-logo-label unity">Unity</div>
-              <div class="vendor-q-count">16문제</div>
+              <div class="vendor-q-count" id="qcount-Unity">16문제</div>
               <div class="vendor-check-mark">✓ 선택됨</div>
             </div>
           </div>
@@ -860,7 +870,7 @@
             <input type="text" id="s-gsUrl" placeholder="https://script.google.com/macros/s/..." oninput="saveSettings()" style="flex:1;" />
             <button class="btn-secondary" onclick="testGoogleSheets()" id="gs-test-btn" style="white-space:nowrap;">연결 테스트</button>
           </div>
-          <p class="api-note" style="margin-top:6px;">딜, MDF, 히스토리 데이터가 구글 시트에 실시간 동기화됩니다</p>
+          <p class="api-note" style="margin-top:6px;">딜, MDF, 히스토리 + <strong>브리핑 · 제안서 내용</strong>이 구글 시트에 실시간 동기화됩니다</p>
         </div>
 
         <!-- 연결 후 동기화 버튼들 -->
@@ -900,6 +910,28 @@
           </div>
         </div>
         <p class="api-note" style="margin-top:4px;">브리핑/제안서 생성 시 자동으로 입력됩니다</p>
+      </div>
+    </div>
+
+    <!-- 퀴즈 시트 안내 -->
+    <div class="card">
+      <div class="settings-section" style="margin-bottom:0;">
+        <div class="settings-section-title">🎯 제품 퀴즈 문제 관리 (구글시트)</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.9;padding:10px 12px;background:var(--surface2);border-radius:8px;">
+          구글시트 연결 후 <strong>Quizzes</strong> 시트에 문제를 추가하면 퀴즈에 자동 반영됩니다.<br>
+          앱을 처음 연결하면 Quizzes 시트와 헤더가 자동으로 생성됩니다.<br><br>
+          <strong>열 구성 (A~J)</strong><br>
+          <span style="font-family:monospace;font-size:11px;background:var(--surface);display:inline-block;padding:6px 10px;border-radius:6px;border:1px solid var(--border);margin-top:4px;line-height:2;">
+            A: 벤더 (NVIDIA / Dell / Unity)<br>
+            B: 난이도 (기초 / 심화)<br>
+            C: 영문 문제 (없으면 빈칸도 OK)<br>
+            D: 한국어 문제 ★필수<br>
+            E~H: 보기1 / 보기2 / 보기3 / 보기4<br>
+            I: 정답번호 (1~4 중 하나)<br>
+            J: 해설 텍스트
+          </span><br><br>
+          퀴즈 페이지 접속 시 자동으로 불러오며, <strong>[새로고침]</strong> 버튼으로 수동 갱신도 가능합니다.
+        </div>
       </div>
     </div>
 
@@ -964,6 +996,30 @@ function doGet(e) {
         return corsOutput({ok:true,data:{nvidia:Number(data[0][0])||0,dell:Number(data[1][0])||0,unity:Number(data[2][0])||0,other:Number(data[3][0])||0}});
       }
     }
+    if (type === 'quizzes') {
+      const sheet = ss.getSheetByName('Quizzes');
+      if (sheet && sheet.getLastRow() > 1) {
+        const rows = sheet.getRange(2,1,sheet.getLastRow()-1,8).getValues();
+        result = rows.filter(r=>r[0] && r[1]).map(r=>({
+          vendor: String(r[0]).trim(),
+          diff:   String(r[1]).trim().toLowerCase() === '심화' ? 'advanced' : 'basic',
+          en:     String(r[2]).trim(),
+          kr:     String(r[3]).trim(),
+          options:[String(r[4]),String(r[5]),String(r[6]),String(r[7])].map(s=>s.trim()),
+          correct: 0,
+          explain: ''
+        }));
+        // correct 열(9번째=인덱스8), explain(10번째=인덱스9)
+        const extra = sheet.getLastColumn() >= 10
+          ? sheet.getRange(2,9,sheet.getLastRow()-1,2).getValues()
+          : null;
+        if (extra) result.forEach((q,i)=>{
+          const c = Number(extra[i][0]);
+          q.correct = (c >= 1 && c <= 4) ? c-1 : 0;
+          q.explain = String(extra[i][1]||'').trim();
+        });
+      }
+    }
     return corsOutput({ ok: true, data: result });
   } catch(err) { return corsOutput({ ok: false, error: err.message }); }
 }
@@ -991,6 +1047,36 @@ function doPost(e) {
     if (data.type === 'mdf_budget') {
       const sheet = ensureSheet(ss,'Config',['항목','값']);
       sheet.getRange('A1:B4').setValues([['NVIDIA MDF 예산(만원)',data.nvidia||0],['Dell MDF 예산(만원)',data.dell||0],['Unity MDF 예산(만원)',data.unity||0],['기타 예산(만원)',data.other||0]]);
+    }
+    // 브리핑 저장 (단건)
+    if (data.type === 'briefing_sheet') {
+      const sh = ensureSheet(ss,'Briefings',['날짜','벤더','제목','미팅목적','아젠다','핵심포인트','벤더동향','체크리스트','예상Q&A']);
+      sh.appendRow([data.date,data.vendor,data.title,data.purpose,data.agenda,data.keyPoints,data.trends,data.prepChecklist,data.expectedQA]);
+    }
+    // 브리핑 일괄 저장
+    if (data.type === 'briefing_sheet_bulk') {
+      const sh = ensureSheet(ss,'Briefings',['날짜','벤더','제목','미팅목적','아젠다','핵심포인트','벤더동향','체크리스트','예상Q&A']);
+      sh.clearContents();
+      sh.appendRow(['날짜','벤더','제목','미팅목적','아젠다','핵심포인트','벤더동향','체크리스트','예상Q&A']);
+      sh.getRange(1,1,1,9).setFontWeight('bold').setBackground('#e8f0fe');
+      (data.rows||[]).forEach(r=>sh.appendRow([r.date,r.vendor,r.title,r.purpose,r.agenda,r.keyPoints,r.trends,r.prepChecklist,r.expectedQA]));
+    }
+    // 제안서 저장 (단건)
+    if (data.type === 'proposal_sheet') {
+      const sh = ensureSheet(ss,'Proposals',['날짜','벤더','파트너사','이메일제목','수신자','이메일본문','소개','포지셔닝','마진구조','온보딩단계','Next Steps']);
+      sh.appendRow([data.date,data.vendor,data.resellerName,data.emailSubject,data.emailTo,data.emailBody,data.intro,data.positioning,data.marginItems,data.onboardingSteps,data.nextSteps]);
+    }
+    // 제안서 일괄 저장
+    if (data.type === 'proposal_sheet_bulk') {
+      const sh = ensureSheet(ss,'Proposals',['날짜','벤더','파트너사','이메일제목','수신자','이메일본문','소개','포지셔닝','마진구조','온보딩단계','Next Steps']);
+      sh.clearContents();
+      sh.appendRow(['날짜','벤더','파트너사','이메일제목','수신자','이메일본문','소개','포지셔닝','마진구조','온보딩단계','Next Steps']);
+      sh.getRange(1,1,1,11).setFontWeight('bold').setBackground('#e8f0fe');
+      (data.rows||[]).forEach(r=>sh.appendRow([r.date,r.vendor,r.resellerName,r.emailSubject,r.emailTo,r.emailBody,r.intro,r.positioning,r.marginItems,r.onboardingSteps,r.nextSteps]));
+    }
+    // Quizzes 시트 초기화 (처음 한 번만 헤더 생성용)
+    if (data.type === 'init_quizzes') {
+      ensureSheet(ss,'Quizzes',['벤더(NVIDIA/Dell/Unity)','난이도(기초/심화)','영문 문제','한국어 문제','보기1','보기2','보기3','보기4','정답번호(1~4)','해설']);
     }
     return corsOutput({ ok: true });
   } catch(err) { return corsOutput({ ok: false, error: err.message }); }
@@ -1026,7 +1112,7 @@ function ensureSheet(ss, name, headers) {
         <div class="deal-stat-label">수주 (Closed Won)</div>
       </div>
       <div class="deal-stat">
-        <div class="deal-stat-val" id="ds-amount" style="color:var(--accent-text)">₩0</div>
+        <div class="deal-stat-val" id="ds-amount" style="color:var(--accent-text)">0</div>
         <div class="deal-stat-label">총 수주 금액</div>
       </div>
     </div>
@@ -1062,15 +1148,15 @@ function ensureSheet(ss, name, headers) {
   <div class="page" id="page-mdf">
     <div class="mdf-summary-row">
       <div class="mdf-stat">
-        <div class="mdf-stat-val" id="mdf-budget-total">₩0</div>
+        <div class="mdf-stat-val" id="mdf-budget-total">0</div>
         <div class="mdf-stat-label">총 예산</div>
       </div>
       <div class="mdf-stat">
-        <div class="mdf-stat-val" id="mdf-used" style="color:var(--accent-text)">₩0</div>
+        <div class="mdf-stat-val" id="mdf-used" style="color:var(--accent-text)">0</div>
         <div class="mdf-stat-label">집행 완료</div>
       </div>
       <div class="mdf-stat">
-        <div class="mdf-stat-val" id="mdf-remaining" style="color:var(--green)">₩0</div>
+        <div class="mdf-stat-val" id="mdf-remaining" style="color:var(--green)">0</div>
         <div class="mdf-stat-label">잔여 예산</div>
       </div>
     </div>
@@ -1284,6 +1370,7 @@ function goTo(page) {
   if (page === 'settings') loadSettingsUI();
   if (page === 'deal') renderDealList();
   if (page === 'mdf') renderMdfSummary();
+  if (page === 'quiz') { updateQuizCounts(); if (getSettings().gsUrl) loadQuizFromSheet(); }
 }
 
 // ══════════ VENDOR CHIPS ══════════
@@ -1439,11 +1526,35 @@ async function pushAllToSheets() {
   if (!gsUrl) return;
   showToast('⬆ 시트로 내보내는 중...');
   try {
-    await Promise.all([
+    const historyItems = getHistory();
+    const briefings = historyItems.filter(i => i.toolType === 'briefing');
+    const proposals  = historyItems.filter(i => i.toolType === 'proposal');
+
+    const requests = [
       fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'deals', deals: getDeals() }) }),
       fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'mdf',   items: getMdfItems() }) }),
-      fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'mdf_budget', ...getMdfBudget() }) })
-    ]);
+      fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'mdf_budget', ...getMdfBudget() }) }),
+      fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'history', items: historyItems }) })
+    ];
+
+    // 브리핑 전체 일괄 전송
+    if (briefings.length) {
+      const rows = briefings.map(item => {
+        let parsed = {}; try { parsed = JSON.parse(item.content || '{}'); } catch {}
+        return buildSheetPayload(item, parsed, item.date);
+      });
+      requests.push(fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'briefing_sheet_bulk', rows }) }));
+    }
+    // 제안서 전체 일괄 전송
+    if (proposals.length) {
+      const rows = proposals.map(item => {
+        let parsed = {}; try { parsed = JSON.parse(item.content || '{}'); } catch {}
+        return buildSheetPayload(item, parsed, item.date);
+      });
+      requests.push(fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'proposal_sheet_bulk', rows }) }));
+    }
+
+    await Promise.all(requests);
     lastSyncTime = new Date();
     updateSyncTimestamp();
     showToast('✅ 전체 데이터를 시트로 내보냈습니다');
@@ -1462,15 +1573,61 @@ function getHistory() {
   try { return JSON.parse(localStorage.getItem('dpm_history') || '[]'); } catch { return []; }
 }
 function saveHistoryItem(item) {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ko-KR');
   const h = getHistory();
-  h.unshift({ ...item, id: Date.now(), date: new Date().toLocaleDateString('ko-KR') });
+  h.unshift({ ...item, id: Date.now(), date: dateStr });
   localStorage.setItem('dpm_history', JSON.stringify(h.slice(0, 50)));
   updateHistoryBadge();
   // sync to Google Sheets if configured
   const gsUrl = getSettings().gsUrl;
   if (gsUrl) {
-    fetch(gsUrl, { method: 'POST', body: JSON.stringify({ type: 'history', ...item, date: new Date().toLocaleDateString('ko-KR') }) }).catch(() => {});
+    // 1) 히스토리 시트에 저장 (기존)
+    fetch(gsUrl, { method: 'POST', body: JSON.stringify({ type: 'history', ...item, date: dateStr }) }).catch(() => {});
+    // 2) 브리핑/제안서 전용 시트에 별도 저장
+    if (item.toolType === 'briefing' || item.toolType === 'proposal') {
+      let parsed = {};
+      try { parsed = JSON.parse(item.content || '{}'); } catch {}
+      const payload = buildSheetPayload(item, parsed, dateStr);
+      fetch(gsUrl, { method: 'POST', body: JSON.stringify(payload) }).catch(() => {});
+    }
   }
+}
+
+function buildSheetPayload(item, parsed, dateStr) {
+  if (item.toolType === 'briefing') {
+    const ko = parsed.ko || {};
+    return {
+      type: 'briefing_sheet',
+      date: dateStr,
+      vendor: item.vendor || '',
+      title: item.title || '',
+      purpose: item.sub || '',
+      agenda: (ko.agenda || []).join(' | '),
+      keyPoints: (ko.keyPoints || []).join(' | '),
+      trends: ko.trends || '',
+      prepChecklist: (ko.prepChecklist || []).join(' | '),
+      expectedQA: (ko.expectedQA || []).map(q => `Q: ${q.q} / A: ${q.a}`).join(' || ')
+    };
+  } else if (item.toolType === 'proposal') {
+    const ko = parsed.ko || {};
+    const r = ko.report || {};
+    return {
+      type: 'proposal_sheet',
+      date: dateStr,
+      vendor: item.vendor || '',
+      resellerName: item.sub || '',
+      emailSubject: ko.emailSubject || '',
+      emailTo: ko.emailTo || '',
+      emailBody: ko.emailBody || '',
+      intro: r.intro || '',
+      positioning: r.positioning || '',
+      marginItems: (r.marginItems || []).map(m => `${m.label}: ${m.value}`).join(' | '),
+      onboardingSteps: (r.onboardingSteps || []).join(' | '),
+      nextSteps: (r.nextSteps || []).join(' | ')
+    };
+  }
+  return { type: item.toolType, ...item, date: dateStr };
 }
 function updateHistoryBadge() {
   const count = getHistory().length;
@@ -1559,6 +1716,12 @@ async function callAI(prompt, maxTokens = 8000) {
   if (jsonStart !== -1 && jsonEnd !== -1) {
     text = text.slice(jsonStart, jsonEnd + 1);
   }
+  // JSON 문자열 값 내부의 실제 개행(\n)을 \\n으로 안전하게 변환
+  // (LLM이 문자열 값 안에 실제 개행을 넣는 경우 파싱 오류 방지)
+  text = text.replace(/"((?:[^"\\]|\\.)*)"/g, (match, inner) => {
+    const fixed = inner.replace(/\n/g, '\\n').replace(/\r/g, '');
+    return '"' + fixed + '"';
+  });
   return text;
 }
 
@@ -1666,8 +1829,10 @@ async function generateProposal() {
 - 온보딩 기간: ${onboarding}
 - 추가 제안: ${extraPoints || '없음'}
 
-반드시 아래 JSON 구조만 출력하세요. 백틱이나 마크다운 없이 순수 JSON만 출력하세요.
-emailBody의 줄바꿈은 \\n 으로 처리하고, 본문 안에 큰따옴표(")를 절대 쓰지 마세요.
+[출력 규칙 - 반드시 준수]
+1. 순수 JSON만 출력. 백틱/마크다운/설명텍스트 없이 { 로 시작해서 } 로 끝내세요.
+2. 모든 문자열 값 안에 큰따옴표(") 절대 사용 금지. 따옴표 필요시 작은따옴표(')로 대체하세요.
+3. 줄바꿈은 반드시 \\n 으로만 표현. 실제 개행 문자 사용 금지.
 {"ko":{"emailSubject":"제목","emailTo":"${resellerName} 담당자","emailBody":"본문 (줄바꿈=\\n)","report":{"intro":"소개 2-3문장","positioning":"포지셔닝 2-3문장","marginItems":[{"label":"항목","value":"값"},{"label":"항목","value":"값"},{"label":"항목","value":"값"}],"onboardingSteps":["1단계","2단계","3단계","4단계"],"nextSteps":["액션1","액션2","액션3"]}},"en":{"emailSubject":"subject","emailTo":"${resellerName} Team","emailBody":"body (newline=\\n)","report":{"intro":"intro 2-3 sentences","positioning":"positioning 2-3 sentences","marginItems":[{"label":"item","value":"val"},{"label":"item","value":"val"},{"label":"item","value":"val"}],"onboardingSteps":["step1","step2","step3","step4"],"nextSteps":["action1","action2","action3"]}}}`;
 
   try {
@@ -1675,7 +1840,7 @@ emailBody의 줄바꿈은 \\n 으로 처리하고, 본문 안에 큰따옴표(")
     try {
       pData = JSON.parse(text);
     } catch (jsonErr) {
-      // JSON이 잘린 경우 복구 시도
+      // JSON 복구 시도 1: 잘린 경우 마지막 완전한 } 찾기
       let recovered = false;
       try {
         let depth = 0, lastValid = -1;
@@ -1687,9 +1852,21 @@ emailBody의 줄바꿈은 \\n 으로 처리하고, 본문 안에 큰따옴표(")
           pData = JSON.parse(text.slice(0, lastValid + 1));
           recovered = true;
         }
-      } catch(e2) { /* 복구 실패 */ }
+      } catch(e2) { /* 복구1 실패 */ }
+      // JSON 복구 시도 2: 이스케이프 안 된 큰따옴표 제거 후 재파싱
       if (!recovered) {
-        const preview = text.slice(0, 300).replace(/</g, '&lt;');
+        try {
+          // 문자열 값 안의 이스케이프 안 된 " 를 ' 로 교체
+          const cleaned = text.replace(/:[ ]*"((?:[^"\\]|\\.)*)"/g, (m, p1) => {
+            const fixed = p1.replace(/(?<!\\)"/g, "'");
+            return ': "' + fixed + '"';
+          });
+          pData = JSON.parse(cleaned);
+          recovered = true;
+        } catch(e3) { /* 복구2 실패 */ }
+      }
+      if (!recovered) {
+        const preview = text.slice(0, 400).replace(/</g, '&lt;');
         pShowError(`JSON 파싱 오류: ${jsonErr.message}\n\nAPI 응답 미리보기:\n${preview}`);
         return;
       }
@@ -1742,6 +1919,7 @@ function saveProposal() {
 }
 
 // ══════════ QUIZ ══════════
+let SHEET_QUESTIONS = []; // 구글시트에서 불러온 문제
 const ALL_QUESTIONS = [
   // NVIDIA
   { vendor:"NVIDIA", diff:"basic", en:"What does GPU stand for?", kr:"GPU의 약자는?", options:["General Processing Unit","Graphics Processing Unit","Global Processing Utility","Geometric Processing Unit"], correct:1, explain:"GPU(Graphics Processing Unit)는 원래 그래픽 렌더링을 위해 설계되었으나, 병렬 연산 능력 덕분에 AI/ML 학습과 추론에도 핵심 부품으로 자리잡았습니다." },
@@ -1818,8 +1996,55 @@ function updateQStartBtn() {
   const label = qVendors.length === 3 ? 'Mixed 전체' : qVendors.join(' + ');
   btn.textContent = label + ' 퀴즈 시작 →';
 }
+function updateQuizCounts() {
+  const combined = [...ALL_QUESTIONS, ...SHEET_QUESTIONS];
+  ['NVIDIA','Dell','Unity'].forEach(v => {
+    const el = document.getElementById('qcount-' + v);
+    if (el) el.textContent = combined.filter(q => q.vendor === v).length + '문제';
+  });
+}
+
+async function loadQuizFromSheet() {
+  const gsUrl = getSettings().gsUrl;
+  const banner = document.getElementById('quiz-sheet-banner');
+  const msgEl  = document.getElementById('quiz-sheet-msg');
+  const iconEl = document.getElementById('quiz-sheet-icon');
+  if (!gsUrl) {
+    if (banner) { banner.style.display = 'none'; }
+    return;
+  }
+  if (banner) { banner.style.display = 'flex'; }
+  if (msgEl)  msgEl.textContent = '구글시트에서 문제를 불러오는 중...';
+  if (iconEl) iconEl.textContent = '⏳';
+  try {
+    const res = await fetch(gsUrl + '?type=quizzes');
+    const json = await res.json();
+    if (json.ok && Array.isArray(json.data) && json.data.length) {
+      SHEET_QUESTIONS = json.data.filter(q =>
+        q.vendor && q.kr && Array.isArray(q.options) && q.options.length === 4
+      );
+      if (msgEl)  msgEl.textContent = '시트에서 ' + SHEET_QUESTIONS.length + '개 문제 추가 로드됨 ✓';
+      if (iconEl) iconEl.textContent = '✅';
+      // Quizzes 시트 초기화(헤더 생성)도 함께 요청
+      fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'init_quizzes' }) }).catch(()=>{});
+    } else {
+      SHEET_QUESTIONS = [];
+      if (msgEl)  msgEl.textContent = '시트에 추가 문제 없음 — 기본 문제로 진행';
+      if (iconEl) iconEl.textContent = '📋';
+      // 헤더만 생성
+      fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'init_quizzes' }) }).catch(()=>{});
+    }
+  } catch {
+    SHEET_QUESTIONS = [];
+    if (msgEl)  msgEl.textContent = '시트 연결 실패 — 기본 문제로 진행';
+    if (iconEl) iconEl.textContent = '⚠️';
+  }
+  updateQuizCounts();
+}
+
 function startQuiz() {
-  let pool = ALL_QUESTIONS.filter(q => qVendors.includes(q.vendor));
+  const combined = [...ALL_QUESTIONS, ...SHEET_QUESTIONS];
+  let pool = combined.filter(q => qVendors.includes(q.vendor));
   if (qDiff !== 'all') pool = pool.filter(q => q.diff === qDiff);
   if (!pool.length) { alert('선택한 조건에 해당하는 문제가 없습니다.'); return; }
   qQuestions = shuffle(pool).slice(0, Math.min(10, pool.length));
@@ -1943,7 +2168,7 @@ function renderDealList() {
   document.getElementById('ds-total').textContent = deals.length;
   document.getElementById('ds-approved').textContent = deals.filter(d => d.status === 'approved').length;
   document.getElementById('ds-won').textContent = won.length;
-  document.getElementById('ds-amount').textContent = '₩' + wonAmt.toLocaleString('ko-KR') + '만';
+  document.getElementById('ds-amount').textContent = '' + wonAmt.toLocaleString('ko-KR') + '만';
 
   const tbody = document.getElementById('deal-tbody');
   const emptyMsg = document.getElementById('deal-empty-msg');
@@ -1959,7 +2184,7 @@ function renderDealList() {
       <td>${escHtml(d.reseller || '—')}</td>
       <td>${escHtml(d.customer || '—')}</td>
       <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(d.product || '')}">${escHtml(d.product || '—')}</td>
-      <td class="deal-amount">${d.amount ? '₩' + Number(d.amount).toLocaleString('ko-KR') + '만' : '—'}</td>
+      <td class="deal-amount">${d.amount ? '' + Number(d.amount).toLocaleString('ko-KR') + '만' : '—'}</td>
       <td><span class="status-badge status-${d.status}">${STATUS_LABELS[d.status] || d.status}</span></td>
       <td style="color:var(--text3);font-size:12px;">${d.regDate || '—'}</td>
       <td style="color:var(--text3);font-size:12px;">${d.closeDate || '—'}</td>
@@ -2054,9 +2279,9 @@ function renderMdfSummary() {
   const remaining = totalBudget - used;
   const pct = totalBudget ? Math.round((used / totalBudget) * 100) : 0;
 
-  document.getElementById('mdf-budget-total').textContent = '₩' + totalBudget.toLocaleString('ko-KR') + '만';
-  document.getElementById('mdf-used').textContent = '₩' + used.toLocaleString('ko-KR') + '만';
-  document.getElementById('mdf-remaining').textContent = '₩' + Math.max(0, remaining).toLocaleString('ko-KR') + '만';
+  document.getElementById('mdf-budget-total').textContent = '' + totalBudget.toLocaleString('ko-KR') + '만';
+  document.getElementById('mdf-used').textContent = '' + used.toLocaleString('ko-KR') + '만';
+  document.getElementById('mdf-remaining').textContent = '' + Math.max(0, remaining).toLocaleString('ko-KR') + '만';
   document.getElementById('mdf-pct-label').textContent = pct + '%';
   const fill = document.getElementById('mdf-prog-fill');
   fill.style.width = Math.min(pct, 100) + '%';
@@ -2084,7 +2309,7 @@ function renderMdfSummary() {
           </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-          <span class="mdf-amount-badge">₩${Number(item.amount || 0).toLocaleString('ko-KR')}만</span>
+          <span class="mdf-amount-badge">${Number(item.amount || 0).toLocaleString('ko-KR')}만</span>
           <div class="deal-actions-row">
             <button class="deal-edit-btn" onclick="editMdfItem(${item.id})">수정</button>
             <button class="deal-del-btn" onclick="deleteMdfItem(${item.id})">삭제</button>
@@ -2203,6 +2428,9 @@ updateDealBadge();
 (async function initLoad() {
   const gsUrl = getSettings().gsUrl;
   if (!gsUrl) return;
+
+  // 퀴즈 시트 로드 (비동기, 백그라운드)
+  loadQuizFromSheet();
   try {
     const [dealsRes, mdfRes, histRes, budgetRes] = await Promise.all([
       fetch(gsUrl + '?type=deals'),
