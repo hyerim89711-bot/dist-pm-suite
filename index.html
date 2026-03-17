@@ -834,19 +834,10 @@
     <div class="card">
       <div class="settings-section">
         <div class="settings-section-title">🤖 AI API 설정</div>
-        <div style="display:flex;gap:8px;margin-bottom:12px;" id="api-type-toggle">
-          <button class="chip active" data-api="claude" onclick="selectApiType('claude',this)">Claude (Anthropic)</button>
-          <button class="chip" data-api="gemini" onclick="selectApiType('gemini',this)">Gemini (Google)</button>
-        </div>
         <div id="api-claude-section">
           <label>Anthropic API Key</label>
           <input type="password" id="s-apiKey" placeholder="sk-ant-..." oninput="saveSettings()" />
           <p class="api-note">console.anthropic.com 에서 발급 · 브라우저 localStorage에만 저장, 외부 전송 없음</p>
-        </div>
-        <div id="api-gemini-section" style="display:none;">
-          <label>Google Gemini API Key</label>
-          <input type="password" id="s-geminiKey" placeholder="AIzaSy..." oninput="saveSettings()" />
-          <p class="api-note">aistudio.google.com 에서 무료 발급 · 브라우저 localStorage에만 저장됩니다</p>
         </div>
       </div>
     </div>
@@ -1314,9 +1305,7 @@ function getSettings() {
 }
 function saveSettings() {
   const s = {
-    apiType:    (document.getElementById('api-type-toggle')?.querySelector('.chip.active')?.dataset.api) || 'claude',
     apiKey:     document.getElementById('s-apiKey')?.value || '',
-    geminiKey:  document.getElementById('s-geminiKey')?.value || '',
     gsUrl:      document.getElementById('s-gsUrl')?.value || '',
     distName:   document.getElementById('s-distName')?.value || '',
     distContact:document.getElementById('s-distContact')?.value || ''
@@ -1326,37 +1315,16 @@ function saveSettings() {
 }
 function loadSettingsUI() {
   const s = getSettings();
-  const apiType = s.apiType || 'claude';
-  // API 타입 칩
-  document.querySelectorAll('#api-type-toggle .chip').forEach(c => {
-    c.classList.toggle('active', c.dataset.api === apiType);
-  });
-  document.getElementById('api-claude-section').style.display = apiType === 'claude' ? 'block' : 'none';
-  document.getElementById('api-gemini-section').style.display = apiType === 'gemini' ? 'block' : 'none';
-
-  document.getElementById('s-apiKey').value     = s.apiKey || '';
-  document.getElementById('s-geminiKey').value  = s.geminiKey || '';
-  document.getElementById('s-gsUrl').value      = s.gsUrl || '';
-  document.getElementById('s-distName').value   = s.distName || '';
-  document.getElementById('s-distContact').value= s.distContact || '';
+  document.getElementById('s-apiKey').value      = s.apiKey || '';
+  document.getElementById('s-gsUrl').value       = s.gsUrl || '';
+  document.getElementById('s-distName').value    = s.distName || '';
+  document.getElementById('s-distContact').value = s.distContact || '';
   updateGsBanner();
 
-  // 연결돼 있으면 동기화 버튼 보이기
   const syncActions = document.getElementById('gs-sync-actions');
   if (syncActions) syncActions.style.display = s.gsUrl ? 'flex' : 'none';
 }
-function selectApiType(type, el) {
-  document.querySelectorAll('#api-type-toggle .chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('api-claude-section').style.display = type === 'claude' ? 'block' : 'none';
-  document.getElementById('api-gemini-section').style.display = type === 'gemini' ? 'block' : 'none';
-  saveSettings();
-}
-function getApiKey() {
-  const s = getSettings();
-  return (s.apiType === 'gemini') ? (s.geminiKey || '') : (s.apiKey || '');
-}
-function getApiType() { return getSettings().apiType || 'claude'; }
+function getApiKey() { return getSettings().apiKey || ''; }
 
 // ── GS 배너 업데이트 ──
 function updateGsBanner() {
@@ -1556,41 +1524,35 @@ function bSwitchLang(lang) {
 
 // ── 공통 AI 호출 헬퍼 ──
 async function callAI(prompt) {
-  const apiKey  = getApiKey();
-  const apiType = getApiType();
-  if (!apiKey) throw new Error(apiType === 'claude'
-    ? '설정에서 Anthropic API Key(sk-ant-...)를 먼저 입력해주세요.'
-    : '설정에서 Gemini API Key를 먼저 입력해주세요.');
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error('설정에서 Anthropic API Key(sk-ant-...)를 먼저 입력해주세요.');
 
-  if (apiType === 'claude') {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type':         'application/json',
-        'x-api-key':            apiKey,
-        'anthropic-version':    '2023-06-01',
-        'anthropic-dangerous-direct-browser-calls': 'true'
-      },
-      body: JSON.stringify({
-        model:      'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        messages:   [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || 'Claude API 오류');
-    let text = data.content?.[0]?.text || '';
-    return text.replace(/```json|```/g, '').trim();
-  } else {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || 'Gemini API 오류');
-    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    return text.replace(/```json|```/g, '').trim();
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type':         'application/json',
+      'x-api-key':            apiKey,
+      'anthropic-version':    '2023-06-01',
+      'anthropic-dangerous-direct-browser-calls': 'true'
+    },
+    body: JSON.stringify({
+      model:      'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      messages:   [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Claude API 오류');
+  let text = data.content?.[0]?.text || '';
+  // 마크다운 코드블록 제거
+  text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  // JSON 객체/배열 부분만 추출 (앞뒤 불필요한 텍스트 제거)
+  const jsonStart = text.indexOf('{');
+  const jsonEnd = text.lastIndexOf('}');
+  if (jsonStart !== -1 && jsonEnd !== -1) {
+    text = text.slice(jsonStart, jsonEnd + 1);
   }
+  return text;
 }
 
 async function generateBriefing() {
@@ -1697,12 +1659,20 @@ async function generateProposal() {
 - 온보딩 기간: ${onboarding}
 - 추가 제안: ${extraPoints || '없음'}
 
-아래 JSON 형식으로만 응답 (마크다운 코드블록 없이 순수 JSON):
-{"ko":{"emailSubject":"이메일 제목","emailTo":"${resellerName} 담당자","emailBody":"이메일 본문 전체 (줄바꿈은 \\n)","report":{"intro":"2-3문장","positioning":"2-3문장","marginItems":[{"label":"항목","value":"값"},{"label":"항목","value":"값"},{"label":"항목","value":"값"}],"onboardingSteps":["1단계","2단계","3단계","4단계"],"nextSteps":["액션1","액션2","액션3"]}},"en":{"emailSubject":"subject","emailTo":"${resellerName} Team","emailBody":"full email (use \\n)","report":{"intro":"2-3 sentences","positioning":"2-3 sentences","marginItems":[{"label":"item","value":"val"},{"label":"item","value":"val"},{"label":"item","value":"val"}],"onboardingSteps":["step1","step2","step3","step4"],"nextSteps":["action1","action2","action3"]}}}`;
+반드시 아래 JSON 구조만 출력하세요. 백틱이나 마크다운 없이 순수 JSON만 출력하세요.
+emailBody의 줄바꿈은 \\n 으로 처리하고, 본문 안에 큰따옴표(")를 절대 쓰지 마세요.
+{"ko":{"emailSubject":"제목","emailTo":"${resellerName} 담당자","emailBody":"본문 (줄바꿈=\\n)","report":{"intro":"소개 2-3문장","positioning":"포지셔닝 2-3문장","marginItems":[{"label":"항목","value":"값"},{"label":"항목","value":"값"},{"label":"항목","value":"값"}],"onboardingSteps":["1단계","2단계","3단계","4단계"],"nextSteps":["액션1","액션2","액션3"]}},"en":{"emailSubject":"subject","emailTo":"${resellerName} Team","emailBody":"body (newline=\\n)","report":{"intro":"intro 2-3 sentences","positioning":"positioning 2-3 sentences","marginItems":[{"label":"item","value":"val"},{"label":"item","value":"val"},{"label":"item","value":"val"}],"onboardingSteps":["step1","step2","step3","step4"],"nextSteps":["action1","action2","action3"]}}}`;
 
   try {
     const text = await callAI(prompt);
-    pData = JSON.parse(text);
+    try {
+      pData = JSON.parse(text);
+    } catch (jsonErr) {
+      // JSON 파싱 실패 시 — 응답 미리보기와 함께 에러 표시
+      const preview = text.slice(0, 200).replace(/</g, '&lt;');
+      pShowError(`JSON 파싱 오류: ${jsonErr.message}\n\nAPI 응답 미리보기:\n${preview}`);
+      return;
+    }
     renderProposal(pData, pLang);
     document.getElementById('p-resultSection').classList.add('visible');
   } catch (err) { pShowError('오류: ' + err.message); }
@@ -2189,6 +2159,13 @@ function showToast(msg) {
 }
 
 // ══════════ INIT ══════════
+// 이전에 Gemini로 저장된 경우 Claude로 강제 초기화
+(function() {
+  try {
+    const s = JSON.parse(localStorage.getItem('dpm_settings') || '{}');
+    if (s.apiType === 'gemini') { s.apiType = 'claude'; localStorage.setItem('dpm_settings', JSON.stringify(s)); }
+  } catch {}
+})();
 updateHistoryBadge();
 updateDealBadge();
 
