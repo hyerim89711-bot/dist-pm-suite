@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Distribution PM Suite</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --surface2: #f2f2f0;
+      --border: #e4e4e0;
+      --border2: #d0d0ca;
+      --text: #1a1a18;
+      --text2: #6b6b67;
+      --text3: #9e9e9a;
+      --accent: #1a1a18;
+      --accent-bg: #e8f0fe;
+      --accent-text: #1a73e8;
+      --sidebar-w: 220px;
+      --green: #76b900;
+      --blue: #007db8;
+      --purple: #7c3aed;
+      --red: #dc2626;
+      --yellow: #d97706;
+    }
+
+    body {
+      font-family: -apple-system, 'Apple SD Gothic Neo', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 1.25rem 1rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 4px;
+    }
+    .sidebar-logo-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .sidebar-logo-sub {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    .sidebar-section {
+      padding: 1rem 0.75rem 0.5rem;
+    }
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 0.25rem;
+      margin-bottom: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13.5px;
+      color: var(--text2);
+      transition: all 0.12s;
+      user-select: none;
+      margin-bottom: 1px;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: var(--accent-bg); color: var(--accent-text); font-weight: 600; }
+    .nav-item .nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+    .nav-item .nav-badge {
+      margin-left: auto;
+      font-size: 10px;
+      background: var(--surface2);
+      color: var(--text3);
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+    .nav-item.active .nav-badge { background: rgba(26,115,232,0.12); color: var(--accent-text); }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .settings-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text2);
+      transition: all 0.12s;
+      user-select: none;
+      width: 100%;
+    }
+    .settings-btn:hover { background: var(--surface2); color: var(--text); }
+
+    /* ── MAIN ── */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-height: 100vh;
+    }
+    .topbar {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar-title { font-size: 15px; font-weight: 600; }
+    .topbar-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+    .topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+    .page { display: none; padding: 1.5rem; max-width: 860px; }
+    .page.active { display: block; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .step-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      background: var(--accent-bg);
+      color: var(--accent-text);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-row.full { grid-template-columns: 1fr; }
+    label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%; font-family: inherit; font-size: 14px; padding: 8px 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--surface2); color: var(--text); outline: none; transition: border 0.15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent-text); background: var(--surface); }
+    textarea { height: 76px; resize: vertical; }
+    .api-note { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+    .vendor-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+    .chip {
+      padding: 6px 14px; border-radius: 999px; font-size: 13px;
+      cursor: pointer; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2);
+      transition: all 0.15s; user-select: none;
+    }
+    .chip.active { background: var(--accent-bg); color: var(--accent-text); border-color: transparent; font-weight: 600; }
+
+    .generate-btn {
+      width: 100%; padding: 12px; font-size: 14px; font-weight: 600;
+      background: var(--text); color: var(--surface);
+      border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.15s;
+      font-family: inherit;
+    }
+    .generate-btn:hover { opacity: 0.82; }
+    .generate-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-secondary {
+      padding: 7px 14px; font-size: 13px; font-weight: 500;
+      background: var(--surface); color: var(--text2);
+      border: 1px solid var(--border); border-radius: 8px;
+      cursor: pointer; font-family: inherit; transition: all 0.12s;
+    }
+    .btn-secondary:hover { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+
+    .btn-accent {
+      padding: 7px 14px; font-size: 13px; font-weight: 500;
+      background: var(--accent-bg); color: var(--accent-text);
+      border: 1px solid transparent; border-radius: 8px;
+      cursor: pointer; font-family: inherit; transition: all 0.12s;
+    }
+    .btn-accent:hover { opacity: 0.85; }
+
+    /* ── RESULT ── */
+    .result-section { display: none; margin-top: 1.5rem; }
+    .result-section.visible { display: block; }
+    .result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+    .result-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
+    .lang-toggle { display: flex; gap: 6px; }
+    .lang-btn {
+      padding: 5px 12px; font-size: 12px; border-radius: 7px;
+      border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+      cursor: pointer; font-family: inherit; transition: all 0.12s;
+    }
+    .lang-btn.active { background: var(--surface); color: var(--text); border-color: var(--border2); font-weight: 600; }
+
+    .briefing-block {
+      background: var(--surface2); border-radius: 10px;
+      padding: 1rem 1.25rem; margin-bottom: 10px;
+    }
+    .briefing-block h3 { font-size: 13px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .b-icon {
+      width: 22px; height: 22px; border-radius: 5px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      background: var(--accent-bg); color: var(--accent-text); flex-shrink: 0;
+    }
+    .briefing-block p, .briefing-block li { font-size: 14px; color: #444; line-height: 1.75; }
+    .briefing-block ul { padding-left: 1.2rem; }
+    .briefing-block li { margin-bottom: 4px; }
+    .qa-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .qa-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .qa-q { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .qa-a { font-size: 14px; color: #555; }
+    .check-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+    .check-item:last-child { border-bottom: none; }
+    .check-box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--border2); flex-shrink: 0; cursor: pointer; transition: all 0.15s; }
+    .check-box.checked { background: var(--accent-text); border-color: var(--accent-text); }
+    .check-item span { font-size: 14px; color: #444; }
+
+    /* ── PROPOSAL TABS ── */
+    .tab-row { display: flex; gap: 4px; }
+    .tab {
+      padding: 6px 14px; font-size: 13px; cursor: pointer;
+      border: 1px solid var(--border); border-radius: 7px;
+      background: var(--surface2); color: var(--text2);
+      font-family: inherit; transition: all 0.12s;
+    }
+    .tab.active { background: var(--surface); color: var(--text); border-color: var(--border2); font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.visible { display: block; }
+    .email-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+    .email-meta { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .email-meta p { font-size: 13px; color: var(--text2); margin-bottom: 5px; }
+    .email-meta span { color: var(--text); font-weight: 600; }
+    .email-body { font-size: 14px; color: #333; line-height: 1.85; white-space: pre-wrap; }
+    .copy-btn {
+      font-size: 12px; padding: 4px 10px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+      cursor: pointer; float: right; font-family: inherit; transition: background 0.15s;
+    }
+    .copy-btn:hover { background: var(--border); }
+    .report-block { background: var(--surface2); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 10px; }
+    .report-block h3 { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .r-icon { width: 22px; height: 22px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; background: var(--accent-bg); color: var(--accent-text); flex-shrink: 0; }
+    .report-block p, .report-block li { font-size: 14px; color: #444; line-height: 1.75; }
+    .report-block ul { padding-left: 1.2rem; }
+    .report-block li { margin-bottom: 4px; }
+    .margin-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: #444; }
+    .margin-row:last-child { border-bottom: none; }
+    .margin-row span:last-child { font-weight: 600; }
+    .step-item { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+    .step-item:last-child { border-bottom: none; }
+    .step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-bg); color: var(--accent-text); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── QUIZ ── */
+    .quiz-vendor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+    .quiz-vendor-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1rem 0.75rem; cursor: pointer; transition: border-color 0.15s; text-align: center; user-select: none;
+    }
+    .quiz-vendor-card:hover { border-color: var(--border2); }
+    .quiz-vendor-card.selected[data-v="NVIDIA"] { border: 2px solid var(--green); }
+    .quiz-vendor-card.selected[data-v="Dell"] { border: 2px solid var(--blue); }
+    .quiz-vendor-card.selected[data-v="Unity"] { border: 2px solid var(--purple); }
+    .vendor-logo-label { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .vendor-logo-label.nvidia { color: var(--green); }
+    .vendor-logo-label.dell { color: var(--blue); }
+    .vendor-logo-label.unity { color: var(--purple); }
+    .vendor-q-count { font-size: 12px; color: var(--text3); }
+    .vendor-check-mark { display: none; font-size: 11px; margin-top: 6px; color: var(--text3); }
+    .quiz-vendor-card.selected .vendor-check-mark { display: block; }
+
+    .diff-row { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+    .diff-btn {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 12px; font-size: 13px; cursor: pointer; color: var(--text2);
+      font-family: inherit; transition: all 0.12s;
+    }
+    .diff-btn:hover { border-color: var(--border2); color: var(--text); }
+    .diff-btn.selected { background: var(--accent-bg); color: var(--accent-text); border-color: var(--border2); font-weight: 500; }
+
+    .quiz-screen { display: none; }
+    .quiz-screen.active { display: block; }
+    .quiz-progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+    .quiz-progress-fill { height: 100%; background: var(--accent-text); transition: width 0.3s; }
+    .quiz-meta-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .quiz-meta { font-size: 12px; color: var(--text3); font-weight: 500; }
+    .quiz-quit-btn { font-size: 12px; color: var(--text3); cursor: pointer; background: none; border: none; font-family: inherit; padding: 3px 6px; border-radius: 4px; }
+    .quiz-quit-btn:hover { background: var(--surface2); color: var(--text); }
+    .category-badge {
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;
+    }
+    .badge-NVIDIA { background: rgba(118,185,0,0.12); color: var(--green); }
+    .badge-Dell { background: rgba(0,125,184,0.12); color: var(--blue); }
+    .badge-Unity { background: rgba(124,58,237,0.12); color: var(--purple); }
+    .diff-indicator { font-size: 11px; padding: 2px 8px; border-radius: 5px; font-weight: 500; }
+    .diff-basic { background: rgba(217,119,6,0.1); color: var(--yellow); }
+    .diff-advanced { background: rgba(220,38,38,0.1); color: var(--red); }
+    .question-en { font-size: 15px; font-weight: 600; line-height: 1.5; margin-bottom: 5px; }
+    .question-kr { font-size: 13px; color: var(--text2); margin-bottom: 1.25rem; line-height: 1.5; }
+    .options-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+    .option-btn {
+      text-align: left; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--surface2); cursor: pointer; font-size: 14px; font-family: inherit; color: var(--text);
+      transition: all 0.12s; line-height: 1.4;
+    }
+    .option-btn:hover:not(:disabled) { border-color: var(--border2); background: var(--surface); }
+    .option-btn.reveal-correct { background: rgba(59,109,17,0.08); border-color: rgba(59,109,17,0.4); color: #27500a; font-weight: 500; }
+    .option-btn.correct { background: rgba(59,109,17,0.12); border-color: rgba(59,109,17,0.5); color: #1e3d08; font-weight: 600; }
+    .option-btn.wrong { background: rgba(220,38,38,0.08); border-color: rgba(220,38,38,0.4); color: #7f1d1d; }
+    .explain-box {
+      display: none; background: var(--accent-bg); border: 1px solid rgba(26,115,232,0.2);
+      border-radius: 8px; padding: 0.75rem 1rem; font-size: 13px; color: var(--accent-text);
+      line-height: 1.7; margin-bottom: 1rem;
+    }
+    .explain-box.visible { display: block; }
+    .next-btn {
+      display: none; width: 100%; padding: 11px; font-size: 14px; font-weight: 600;
+      background: var(--text); color: var(--surface); border: none; border-radius: 8px;
+      cursor: pointer; font-family: inherit; transition: opacity 0.15s;
+    }
+    .next-btn.visible { display: block; }
+    .next-btn:hover { opacity: 0.82; }
+
+    .result-score-big { font-size: 56px; font-weight: 700; text-align: center; margin-bottom: 4px; }
+    .result-fraction { font-size: 14px; color: var(--text2); text-align: center; margin-bottom: 8px; }
+    .result-comment { font-size: 14px; color: var(--text2); text-align: center; margin-bottom: 1.5rem; padding: 0 1rem; line-height: 1.6; }
+    .result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+    .stat-box { background: var(--surface2); border-radius: 8px; padding: 12px; text-align: center; }
+    .stat-val { font-size: 24px; font-weight: 700; }
+    .stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .stat-box.correct-stat .stat-val { color: #27500a; }
+    .stat-box.wrong-stat .stat-val { color: #7f1d1d; }
+    .review-item { padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
+    .review-item.ok { background: rgba(59,109,17,0.06); border: 1px solid rgba(59,109,17,0.2); }
+    .review-item.bad { background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.15); }
+    .review-q { font-weight: 600; margin-bottom: 4px; line-height: 1.4; }
+    .review-ans-ok { color: #27500a; }
+    .review-ans-wrong { color: #7f1d1d; }
+    .review-ans-correct { color: #27500a; font-weight: 600; }
+
+    /* ── HISTORY ── */
+    .history-empty { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
+    .history-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1rem 1.25rem; margin-bottom: 10px; cursor: pointer; transition: border-color 0.12s;
+    }
+    .history-item:hover { border-color: var(--border2); }
+    .history-item-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .history-item-type {
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;
+      background: var(--accent-bg); color: var(--accent-text);
+    }
+    .history-item-type.type-proposal { background: rgba(124,58,237,0.1); color: var(--purple); }
+    .history-item-type.type-quiz { background: rgba(118,185,0,0.1); color: #4a7200; }
+    .history-item-date { font-size: 11px; color: var(--text3); }
+    .history-item-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+    .history-item-sub { font-size: 12px; color: var(--text2); }
+    .history-delete-btn {
+      font-size: 11px; color: var(--text3); cursor: pointer; background: none; border: none;
+      font-family: inherit; padding: 2px 6px; border-radius: 4px; transition: all 0.12s;
+    }
+    .history-delete-btn:hover { background: rgba(220,38,38,0.1); color: var(--red); }
+
+    .hidden { display: none !important; }
+
+    /* ── DEAL TRACKER ── */
+    .deal-toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:8px; }
+    .deal-filters { display:flex; gap:6px; flex-wrap:wrap; }
+    .filter-btn {
+      padding:5px 12px; font-size:12px; border-radius:7px;
+      border:1px solid var(--border); background:var(--surface2); color:var(--text2);
+      cursor:pointer; font-family:inherit; transition:all 0.12s;
+    }
+    .filter-btn.active { background:var(--surface); color:var(--text); border-color:var(--border2); font-weight:600; }
+    .deal-table-wrap { overflow-x:auto; }
+    .deal-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .deal-table th { background:var(--surface2); padding:9px 12px; text-align:left; font-size:11px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--border); }
+    .deal-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .deal-table tr:last-child td { border-bottom:none; }
+    .deal-table tr:hover td { background:var(--surface2); }
+    .status-badge {
+      display:inline-block; font-size:11px; font-weight:600; padding:2px 9px; border-radius:99px;
+    }
+    .status-submitted  { background:rgba(26,115,232,0.1);  color:#1a73e8; }
+    .status-approved   { background:rgba(59,109,17,0.1);   color:#27500a; }
+    .status-rejected   { background:rgba(220,38,38,0.1);   color:#b91c1c; }
+    .status-closed_won { background:rgba(118,185,0,0.12);  color:#4a7200; }
+    .status-closed_lost{ background:rgba(156,163,175,0.2); color:#6b7280; }
+    .status-pending    { background:rgba(217,119,6,0.1);   color:#b45309; }
+    .deal-empty { text-align:center; padding:2.5rem 1rem; color:var(--text3); font-size:14px; }
+    .deal-amount { font-weight:600; font-variant-numeric:tabular-nums; }
+    .deal-actions-row { display:flex; gap:4px; }
+    .deal-edit-btn, .deal-del-btn {
+      font-size:11px; padding:2px 7px; border-radius:5px; border:1px solid var(--border);
+      background:var(--surface2); color:var(--text2); cursor:pointer; font-family:inherit; transition:all 0.12s;
+    }
+    .deal-del-btn:hover { background:rgba(220,38,38,0.1); color:var(--red); border-color:rgba(220,38,38,0.25); }
+    .deal-edit-btn:hover { background:var(--accent-bg); color:var(--accent-text); border-color:transparent; }
+    .deal-stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:1.25rem; }
+    .deal-stat { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+    .deal-stat-val { font-size:20px; font-weight:700; margin-bottom:2px; }
+    .deal-stat-label { font-size:11px; color:var(--text3); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:500;
+      display:flex; align-items:center; justify-content:center; padding:1rem;
+    }
+    .modal-overlay.hidden { display:none; }
+    .modal-box {
+      background:var(--surface); border-radius:14px; padding:1.5rem; width:100%; max-width:520px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.18); max-height:90vh; overflow-y:auto;
+    }
+    .modal-title { font-size:15px; font-weight:600; margin-bottom:1.25rem; }
+    .modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:1.25rem; }
+
+    /* ── MDF ── */
+    .mdf-summary-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:1.25rem; }
+    .mdf-stat { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px; }
+    .mdf-stat-val { font-size:22px; font-weight:700; margin-bottom:3px; }
+    .mdf-stat-label { font-size:11px; color:var(--text3); }
+    .mdf-progress-wrap { margin-bottom:1.25rem; }
+    .mdf-prog-bar { height:10px; background:var(--border); border-radius:5px; overflow:hidden; margin-top:6px; }
+    .mdf-prog-fill { height:100%; background:var(--accent-text); border-radius:5px; transition:width 0.4s; }
+    .mdf-prog-fill.warning { background:var(--yellow); }
+    .mdf-prog-fill.danger { background:var(--red); }
+    .mdf-item { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem 1.25rem; margin-bottom:8px; }
+    .mdf-item-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px; gap:8px; }
+    .mdf-item-title { font-size:14px; font-weight:600; line-height:1.3; }
+    .mdf-item-meta { font-size:12px; color:var(--text2); display:flex; gap:12px; flex-wrap:wrap; }
+    .mdf-amount-badge { font-size:13px; font-weight:700; color:var(--accent-text); white-space:nowrap; }
+    .mdf-category-chip {
+      font-size:11px; font-weight:600; padding:2px 8px; border-radius:5px;
+      background:var(--accent-bg); color:var(--accent-text);
+    }
+
+    /* ── SETTINGS ── */
+    .settings-section { margin-bottom: 1.5rem; }
+    .settings-section-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row-label { font-size: 14px; }
+    .settings-row-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .gs-status { font-size: 12px; padding: 3px 10px; border-radius: 99px; font-weight: 500; }
+    .gs-status.connected { background: rgba(59,109,17,0.1); color: #27500a; }
+    .gs-status.disconnected { background: var(--surface2); color: var(--text3); }
+
+    /* ── LOADING ── */
+    .loading-dots { display: none; align-items: center; gap: 6px; padding: 2rem; justify-content: center; }
+    .loading-dots.visible { display: flex; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); animation: bounce 1.2s infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:0.4} 40%{transform:translateY(-6px);opacity:1} }
+
+    .error-msg { color: #c0392b; font-size: 13px; padding: 0.75rem; background: #fdf0ed; border-radius: 8px; margin-top: 1rem; display: none; }
+
+    .save-toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--text); color: var(--surface);
+      padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      opacity: 0; transform: translateY(10px); transition: all 0.25s; pointer-events: none; z-index: 999;
+    }
+    .save-toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 680px) {
+      .sidebar { width: 60px; }
+      .nav-item .nav-label, .nav-item .nav-badge, .sidebar-logo-title, .sidebar-logo-sub, .sidebar-logo-badge, .sidebar-section-label, .settings-btn span { display: none; }
+      .main { margin-left: 60px; }
+      .sidebar-logo { padding: 1rem 0.75rem; }
+      .nav-item { justify-content: center; padding: 10px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-badge">Distribution PM</div>
+    <div class="sidebar-logo-title">PM Suite</div>
+    <div class="sidebar-logo-sub">Megazone Cloud</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">도구</div>
+    <div class="nav-item active" onclick="goTo('briefing')" id="nav-briefing">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">미팅 브리핑</span>
+    </div>
+    <div class="nav-item" onclick="goTo('proposal')" id="nav-proposal">
+      <span class="nav-icon">📄</span>
+      <span class="nav-label">리셀러 제안서</span>
+    </div>
+    <div class="nav-item" onclick="goTo('quiz')" id="nav-quiz">
+      <span class="nav-icon">🎯</span>
+      <span class="nav-label">제품 지식 퀴즈</span>
+    </div>
+    <div class="nav-item" onclick="goTo('deal')" id="nav-deal">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">딜 등록 트래커</span>
+      <span class="nav-badge" id="deal-badge">0</span>
+    </div>
+    <div class="nav-item" onclick="goTo('mdf')" id="nav-mdf">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">MDF 예산 계획</span>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">기록</div>
+    <div class="nav-item" onclick="goTo('history')" id="nav-history">
+      <span class="nav-icon">🗂️</span>
+      <span class="nav-label">히스토리</span>
+      <span class="nav-badge" id="history-badge">0</span>
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <button class="settings-btn" onclick="goTo('settings')">
+      <span style="font-size:15px;">⚙️</span>
+      <span>설정</span>
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">미팅 브리핑 생성기</div>
+      <div class="topbar-sub" id="topbar-sub">Vendor Meeting Briefing Generator</div>
+    </div>
+    <div class="topbar-actions" id="topbar-actions">
+      <div id="gs-topbar-status" style="display:none;align-items:center;gap:5px;font-size:11px;color:var(--text3);cursor:pointer;" onclick="goTo('settings')" title="Google Sheets 연동 설정">
+        <span style="width:6px;height:6px;border-radius:50%;background:#4caf50;flex-shrink:0;"></span>
+        <span>Sheets 연결됨</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAGE: BRIEFING ══════════ -->
+  <div class="page active" id="page-briefing">
+    <div class="card">
+      <div class="step-badge">Step 1 — 미팅 정보 입력</div>
+      <div style="margin-bottom:12px;">
+        <label>벤더 선택</label>
+        <div class="vendor-chips" id="b-vendor-chips">
+          <div class="chip active" data-vendor="NVIDIA">NVIDIA</div>
+          <div class="chip" data-vendor="Dell Technologies">Dell Technologies</div>
+          <div class="chip" data-vendor="Unity">Unity</div>
+          <div class="chip" data-vendor="기타">기타</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>미팅 유형</label>
+          <select id="b-meetingType">
+            <option>QBR (분기 비즈니스 리뷰)</option>
+            <option>신규 파트너십 협의</option>
+            <option>제품 업데이트 브리핑</option>
+            <option>딜 등록 및 승인</option>
+            <option>MDF 예산 협의</option>
+            <option>기술 세션</option>
+          </select>
+        </div>
+        <div>
+          <label>미팅 상대방 직급</label>
+          <select id="b-counterpart">
+            <option>Channel Account Manager</option>
+            <option>Channel Director</option>
+            <option>Partner Development Manager</option>
+            <option>Sales Engineer</option>
+            <option>C-Level</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full" style="margin-bottom:12px;">
+        <label>미팅 목적</label>
+        <textarea id="b-purpose" placeholder="예: Q1 리셀러 파이프라인 현황 공유 및 Q2 목표 설정, MDF 집행 계획 협의"></textarea>
+      </div>
+      <div class="form-row full">
+        <label>현재 상황 / 배경 (선택)</label>
+        <textarea id="b-context" placeholder="예: 지난 분기 대비 딜 등록 30% 감소, 경쟁사 프로모션 영향 있음"></textarea>
+      </div>
+    </div>
+    <button class="generate-btn" id="b-generateBtn" onclick="generateBriefing()">브리핑 생성하기 →</button>
+    <div id="b-errorMsg" class="error-msg"></div>
+    <div class="loading-dots" id="b-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+
+    <div class="result-section" id="b-resultSection">
+      <div class="result-header">
+        <div class="result-title">생성된 브리핑</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="lang-toggle">
+            <button class="lang-btn active" onclick="bSwitchLang('ko')">한국어</button>
+            <button class="lang-btn" onclick="bSwitchLang('en')">English</button>
+          </div>
+          <button class="btn-accent" onclick="saveBriefing()">💾 저장</button>
+        </div>
+      </div>
+      <div id="b-briefingContent"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAGE: PROPOSAL ══════════ -->
+  <div class="page" id="page-proposal">
+    <div class="card">
+      <div class="step-badge">Step 1 — 우리 회사 (총판) 정보</div>
+      <div class="form-row">
+        <div>
+          <label>총판사 이름</label>
+          <input type="text" id="p-distName" placeholder="예: 메가존 클라우드" />
+        </div>
+        <div>
+          <label>담당자 이름 / 직함</label>
+          <input type="text" id="p-distContact" placeholder="예: 홍길동 / Distribution PM" />
+        </div>
+      </div>
+      <div>
+        <label>제안하는 벤더</label>
+        <div class="vendor-chips" id="p-vendor-chips">
+          <div class="chip active" data-vendor="NVIDIA">NVIDIA</div>
+          <div class="chip" data-vendor="Dell Technologies">Dell Technologies</div>
+          <div class="chip" data-vendor="Unity">Unity</div>
+          <div class="chip" data-vendor="기타">기타</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="step-badge">Step 2 — 리셀러 파트너사 정보</div>
+      <div class="form-row">
+        <div>
+          <label>파트너사 이름</label>
+          <input type="text" id="p-resellerName" placeholder="예: ABC 테크놀로지" />
+        </div>
+        <div>
+          <label>파트너사 주요 사업</label>
+          <input type="text" id="p-resellerBiz" placeholder="예: SI, MSP, 클라우드 컨설팅" />
+        </div>
+      </div>
+      <div class="form-row full">
+        <label>파트너사 강점 / 배경 (선택)</label>
+        <textarea id="p-resellerStrength" placeholder="예: 금융권 고객사 다수 보유, 기술 인력 30명"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="step-badge">Step 3 — 제안 내용</div>
+      <div class="form-row">
+        <div>
+          <label>예상 마진율</label>
+          <select id="p-margin">
+            <option>10~15%</option><option>15~20%</option><option>20~25%</option><option>협의 필요</option>
+          </select>
+        </div>
+        <div>
+          <label>온보딩 예상 기간</label>
+          <select id="p-onboarding">
+            <option>2~4주</option><option>1~2개월</option><option>3개월</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <label>추가 제안 포인트 (선택)</label>
+        <textarea id="p-extraPoints" placeholder="예: 공동 마케팅 지원, 기술 교육 제공, MDF 지원 가능"></textarea>
+      </div>
+    </div>
+
+    <button class="generate-btn" id="p-generateBtn" onclick="generateProposal()">제안서 생성하기 →</button>
+    <div id="p-errorMsg" class="error-msg"></div>
+    <div class="loading-dots" id="p-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+
+    <div class="result-section" id="p-resultSection">
+      <div class="result-header">
+        <div class="tab-row">
+          <button class="tab active" onclick="pSwitchTab('email')">이메일</button>
+          <button class="tab" onclick="pSwitchTab('report')">보고서</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="lang-toggle">
+            <button class="lang-btn active" onclick="pSwitchLang('ko')">한국어</button>
+            <button class="lang-btn" onclick="pSwitchLang('en')">English</button>
+          </div>
+          <button class="btn-accent" onclick="saveProposal()">💾 저장</button>
+        </div>
+      </div>
+
+      <div id="p-emailTab" class="tab-content visible">
+        <div class="email-card">
+          <button class="copy-btn" onclick="copyEmail()">복사</button>
+          <div class="email-meta">
+            <p>수신 &nbsp;<span id="p-emailTo">—</span></p>
+            <p>제목 &nbsp;<span id="p-emailSubject">—</span></p>
+          </div>
+          <div class="email-body" id="p-emailBody"></div>
+        </div>
+      </div>
+      <div id="p-reportTab" class="tab-content">
+        <div id="p-reportContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAGE: QUIZ ══════════ -->
+  <div class="page" id="page-quiz">
+
+    <!-- HOME -->
+    <div class="quiz-screen active" id="q-screen-home">
+      <div class="card">
+        <div style="margin-bottom:1.25rem;">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">벤더 선택 (복수 가능)</div>
+          <div class="quiz-vendor-grid">
+            <div class="quiz-vendor-card" data-v="NVIDIA" onclick="toggleQuizVendor(this)">
+              <div class="vendor-logo-label nvidia">NVIDIA</div>
+              <div class="vendor-q-count">17문제</div>
+              <div class="vendor-check-mark">✓ 선택됨</div>
+            </div>
+            <div class="quiz-vendor-card" data-v="Dell" onclick="toggleQuizVendor(this)">
+              <div class="vendor-logo-label dell">Dell</div>
+              <div class="vendor-q-count">16문제</div>
+              <div class="vendor-check-mark">✓ 선택됨</div>
+            </div>
+            <div class="quiz-vendor-card" data-v="Unity" onclick="toggleQuizVendor(this)">
+              <div class="vendor-logo-label unity">Unity</div>
+              <div class="vendor-q-count">16문제</div>
+              <div class="vendor-check-mark">✓ 선택됨</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-bottom:1.25rem;">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">난이도</div>
+          <div class="diff-row">
+            <button class="diff-btn selected" data-d="all" onclick="selectQuizDiff(this)">전체 All</button>
+            <button class="diff-btn" data-d="basic" onclick="selectQuizDiff(this)">기초 Basic</button>
+            <button class="diff-btn" data-d="advanced" onclick="selectQuizDiff(this)">심화 Advanced</button>
+          </div>
+        </div>
+        <button class="generate-btn" id="q-start-btn" onclick="startQuiz()" disabled>벤더를 선택하세요</button>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="quiz-screen" id="q-screen-quiz">
+      <div class="card">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="q-progress-fill"></div></div>
+        <div class="quiz-meta-row">
+          <span class="quiz-meta" id="q-meta"></span>
+          <button class="quiz-quit-btn" onclick="quitQuiz()">✕ 그만하기</button>
+        </div>
+        <div id="q-body"></div>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="quiz-screen" id="q-screen-result">
+      <div class="card">
+        <div class="result-score-big" id="q-result-score">—</div>
+        <div class="result-fraction" id="q-result-fraction"></div>
+        <div class="result-comment" id="q-result-comment"></div>
+        <div class="result-stats">
+          <div class="stat-box correct-stat"><div class="stat-val" id="q-stat-correct">—</div><div class="stat-label">정답</div></div>
+          <div class="stat-box wrong-stat"><div class="stat-val" id="q-stat-wrong">—</div><div class="stat-label">오답</div></div>
+          <div class="stat-box"><div class="stat-val" id="q-stat-pct">—</div><div class="stat-label">정확도</div></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:1.5rem;">
+          <button class="btn-secondary" style="flex:1;" onclick="qGoHome()">처음으로</button>
+          <button class="generate-btn" style="flex:2;" onclick="retryQuiz()">다시 풀기 →</button>
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">오답 리뷰</div>
+        <div id="q-review-list"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════ PAGE: HISTORY ══════════ -->
+  <div class="page" id="page-history">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div style="font-size:13px;color:var(--text2);" id="history-count-label">총 0개</div>
+      <button class="btn-secondary" onclick="clearAllHistory()" style="font-size:12px;">전체 삭제</button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- ══════════ PAGE: SETTINGS ══════════ -->
+  <div class="page" id="page-settings">
+
+    <!-- AI API -->
+    <div class="card">
+      <div class="settings-section">
+        <div class="settings-section-title">🤖 AI API 설정</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;" id="api-type-toggle">
+          <button class="chip active" data-api="claude" onclick="selectApiType('claude',this)">Claude (Anthropic)</button>
+          <button class="chip" data-api="gemini" onclick="selectApiType('gemini',this)">Gemini (Google)</button>
+        </div>
+        <div id="api-claude-section">
+          <label>Anthropic API Key</label>
+          <input type="password" id="s-apiKey" placeholder="sk-ant-..." oninput="saveSettings()" />
+          <p class="api-note">console.anthropic.com 에서 발급 · 브라우저 localStorage에만 저장, 외부 전송 없음</p>
+        </div>
+        <div id="api-gemini-section" style="display:none;">
+          <label>Google Gemini API Key</label>
+          <input type="password" id="s-geminiKey" placeholder="AIzaSy..." oninput="saveSettings()" />
+          <p class="api-note">aistudio.google.com 에서 무료 발급 · 브라우저 localStorage에만 저장됩니다</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Google Sheets -->
+    <div class="card">
+      <div class="settings-section">
+        <div class="settings-section-title">🗄️ Google Sheets 연동</div>
+
+        <!-- 상태 배너 -->
+        <div id="gs-banner" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:var(--surface2);margin-bottom:14px;">
+          <span id="gs-banner-dot" style="width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;"></span>
+          <span id="gs-banner-text" style="font-size:13px;color:var(--text2);">Google Sheets가 연결되지 않았습니다</span>
+          <span id="gs-banner-sync" style="font-size:11px;color:var(--text3);margin-left:auto;"></span>
+        </div>
+
+        <div class="form-row full" style="margin-bottom:10px;">
+          <label>Apps Script Web App URL</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="s-gsUrl" placeholder="https://script.google.com/macros/s/..." oninput="saveSettings()" style="flex:1;" />
+            <button class="btn-secondary" onclick="testGoogleSheets()" id="gs-test-btn" style="white-space:nowrap;">연결 테스트</button>
+          </div>
+          <p class="api-note" style="margin-top:6px;">딜, MDF, 히스토리 데이터가 구글 시트에 실시간 동기화됩니다</p>
+        </div>
+
+        <!-- 연결 후 동기화 버튼들 -->
+        <div id="gs-sync-actions" style="display:none;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <button class="btn-accent" style="font-size:12px;" onclick="pullFromSheets()">⬇ 시트에서 불러오기</button>
+          <button class="btn-secondary" style="font-size:12px;" onclick="pushAllToSheets()">⬆ 전체 시트로 내보내기</button>
+        </div>
+
+        <!-- GAS 설정 가이드 -->
+        <div style="padding:12px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.8;">
+          <strong>📌 Google Sheets 연결 방법 (최초 1회)</strong><br>
+          <span style="display:inline-block;margin-top:4px;">
+            ① Google Sheets 새 파일 생성<br>
+            ② 상단 메뉴 → <strong>확장 프로그램</strong> → <strong>Apps Script</strong><br>
+            ③ 아래 코드 전체 복사 → 붙여넣기 → 저장 (Ctrl+S)<br>
+            ④ <strong>배포</strong> → <strong>새 배포</strong> → 유형: 웹 앱<br>
+            &nbsp;&nbsp;&nbsp;실행 계정: <em>나</em> / 액세스: <em>모든 사용자</em><br>
+            ⑤ 생성된 URL 복사 → 위 입력창에 붙여넣기 → 연결 테스트
+          </span>
+          <button class="btn-accent" style="margin-top:10px;font-size:11px;display:block;width:100%;text-align:center;" onclick="toggleGasCode()">📋 Apps Script 코드 복사하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 기본값 -->
+    <div class="card">
+      <div class="settings-section" style="margin-bottom:0;">
+        <div class="settings-section-title">⚙️ 기본값 설정</div>
+        <div class="form-row">
+          <div>
+            <label>총판사 이름</label>
+            <input type="text" id="s-distName" placeholder="예: 메가존 클라우드" oninput="saveSettings()" />
+          </div>
+          <div>
+            <label>담당자 이름 / 직함</label>
+            <input type="text" id="s-distContact" placeholder="예: 홍길동 / Distribution PM" oninput="saveSettings()" />
+          </div>
+        </div>
+        <p class="api-note" style="margin-top:4px;">브리핑/제안서 생성 시 자동으로 입력됩니다</p>
+      </div>
+    </div>
+
+    <!-- 데이터 관리 -->
+    <div class="card">
+      <div class="settings-section" style="margin-bottom:0;">
+        <div class="settings-section-title">🗑️ 로컬 데이터 관리</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-secondary" style="font-size:12px;" onclick="exportAllData()">📥 전체 데이터 내보내기 (JSON)</button>
+          <button class="btn-secondary" style="font-size:12px;color:var(--red);" onclick="clearAllData()">⚠ 전체 초기화</button>
+        </div>
+        <p class="api-note" style="margin-top:8px;">로컬 데이터는 브라우저 localStorage에 저장됩니다</p>
+      </div>
+    </div>
+
+    <!-- GAS 코드 숨김 블록 -->
+    <div id="gas-code-block" style="display:none;">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:600;">Google Apps Script 코드</div>
+          <button class="copy-btn" onclick="copyGasCode()">복사</button>
+        </div>
+        <pre id="gas-code-pre" style="font-size:11.5px;background:var(--surface2);padding:1rem;border-radius:8px;overflow-x:auto;line-height:1.6;color:#333;white-space:pre-wrap;">/**
+ * Distribution PM Suite — Google Apps Script Backend v2
+ */
+function corsOutput(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  try {
+    const type = e.parameter.type;
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let result = [];
+    if (type === 'ping') return corsOutput({ ok: true });
+    if (type === 'history') {
+      const sheet = ss.getSheetByName('History');
+      if (sheet && sheet.getLastRow() > 1) {
+        const rows = sheet.getRange(2,1,sheet.getLastRow()-1,6).getValues();
+        result = rows.filter(r=>r[0]).map(r=>({id:r[0],date:r[1],toolType:r[2],vendor:r[3],title:r[4],sub:r[5]}));
+      }
+    }
+    if (type === 'deals') {
+      const sheet = ss.getSheetByName('Deals');
+      if (sheet && sheet.getLastRow() > 1) {
+        const rows = sheet.getRange(2,1,sheet.getLastRow()-1,10).getValues();
+        result = rows.filter(r=>r[0]).map(r=>({id:r[0],vendor:r[1],reseller:r[2],customer:r[3],product:r[4],amount:r[5],status:r[6],regDate:r[7],closeDate:r[8],note:r[9]}));
+      }
+    }
+    if (type === 'mdf') {
+      const sheet = ss.getSheetByName('MDF');
+      if (sheet && sheet.getLastRow() > 1) {
+        const rows = sheet.getRange(2,1,sheet.getLastRow()-1,9).getValues();
+        result = rows.filter(r=>r[0]).map(r=>({id:r[0],vendor:r[1],category:r[2],title:r[3],amount:r[4],status:r[5],date:r[6],partner:r[7],note:r[8]}));
+      }
+    }
+    if (type === 'mdf_budget') {
+      const sheet = ss.getSheetByName('Config');
+      if (sheet) {
+        const data = sheet.getRange('B1:B4').getValues();
+        return corsOutput({ok:true,data:{nvidia:Number(data[0][0])||0,dell:Number(data[1][0])||0,unity:Number(data[2][0])||0,other:Number(data[3][0])||0}});
+      }
+    }
+    return corsOutput({ ok: true, data: result });
+  } catch(err) { return corsOutput({ ok: false, error: err.message }); }
+}
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (data.type === 'history') {
+      const sheet = ensureSheet(ss,'History',['ID','날짜','유형','벤더','제목','요약']);
+      sheet.appendRow([data.id,data.date,data.toolType,data.vendor||'',data.title,data.sub||'']);
+    }
+    if (data.type === 'deals') {
+      const sheet = ensureSheet(ss,'Deals',['ID','벤더','파트너사','고객사','제품/솔루션','예상금액(만원)','상태','등록일','예상종결일','메모']);
+      sheet.clearContents();
+      sheet.appendRow(['ID','벤더','파트너사','고객사','제품/솔루션','예상금액(만원)','상태','등록일','예상종결일','메모']);
+      (data.deals||[]).forEach(d=>sheet.appendRow([d.id,d.vendor,d.reseller||'',d.customer||'',d.product||'',d.amount||'',d.status,d.regDate||'',d.closeDate||'',d.note||'']));
+    }
+    if (data.type === 'mdf') {
+      const sheet = ensureSheet(ss,'MDF',['ID','벤더','카테고리','활동명','금액(만원)','상태','일정','파트너사','메모']);
+      sheet.clearContents();
+      sheet.appendRow(['ID','벤더','카테고리','활동명','금액(만원)','상태','일정','파트너사','메모']);
+      (data.items||[]).forEach(i=>sheet.appendRow([i.id,i.vendor,i.category||'',i.title||'',i.amount||'',i.status,i.date||'',i.partner||'',i.note||'']));
+    }
+    if (data.type === 'mdf_budget') {
+      const sheet = ensureSheet(ss,'Config',['항목','값']);
+      sheet.getRange('A1:B4').setValues([['NVIDIA MDF 예산(만원)',data.nvidia||0],['Dell MDF 예산(만원)',data.dell||0],['Unity MDF 예산(만원)',data.unity||0],['기타 예산(만원)',data.other||0]]);
+    }
+    return corsOutput({ ok: true });
+  } catch(err) { return corsOutput({ ok: false, error: err.message }); }
+}
+
+function ensureSheet(ss, name, headers) {
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    sheet.appendRow(headers);
+    sheet.getRange(1,1,1,headers.length).setFontWeight('bold').setBackground('#e8f0fe');
+  }
+  return sheet;
+}</pre>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════ PAGE: DEAL TRACKER ══════════ -->
+  <div class="page" id="page-deal">
+    <div class="deal-stats-row">
+      <div class="deal-stat">
+        <div class="deal-stat-val" id="ds-total">0</div>
+        <div class="deal-stat-label">전체 딜</div>
+      </div>
+      <div class="deal-stat">
+        <div class="deal-stat-val" id="ds-approved" style="color:var(--green)">0</div>
+        <div class="deal-stat-label">승인됨</div>
+      </div>
+      <div class="deal-stat">
+        <div class="deal-stat-val" id="ds-won" style="color:#4a7200">0</div>
+        <div class="deal-stat-label">수주 (Closed Won)</div>
+      </div>
+      <div class="deal-stat">
+        <div class="deal-stat-val" id="ds-amount" style="color:var(--accent-text)">₩0</div>
+        <div class="deal-stat-label">총 수주 금액</div>
+      </div>
+    </div>
+
+    <div class="deal-toolbar">
+      <div class="deal-filters">
+        <button class="filter-btn active" data-f="all" onclick="setDealFilter(this,'all')">전체</button>
+        <button class="filter-btn" data-f="submitted" onclick="setDealFilter(this,'submitted')">제출됨</button>
+        <button class="filter-btn" data-f="approved" onclick="setDealFilter(this,'approved')">승인됨</button>
+        <button class="filter-btn" data-f="closed_won" onclick="setDealFilter(this,'closed_won')">수주</button>
+        <button class="filter-btn" data-f="closed_lost" onclick="setDealFilter(this,'closed_lost')">실패</button>
+      </div>
+      <button class="generate-btn" style="width:auto;padding:8px 18px;font-size:13px;" onclick="openDealModal()">+ 딜 등록</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="deal-table-wrap">
+        <table class="deal-table">
+          <thead>
+            <tr>
+              <th>벤더</th><th>파트너사</th><th>고객사</th><th>제품/솔루션</th>
+              <th>예상 금액</th><th>상태</th><th>등록일</th><th>예상 종결</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="deal-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="deal-empty hidden" id="deal-empty-msg">등록된 딜이 없습니다. 위의 <strong>+ 딜 등록</strong> 버튼으로 첫 딜을 추가해보세요.</div>
+  </div>
+
+  <!-- ══════════ PAGE: MDF ══════════ -->
+  <div class="page" id="page-mdf">
+    <div class="mdf-summary-row">
+      <div class="mdf-stat">
+        <div class="mdf-stat-val" id="mdf-budget-total">₩0</div>
+        <div class="mdf-stat-label">총 예산</div>
+      </div>
+      <div class="mdf-stat">
+        <div class="mdf-stat-val" id="mdf-used" style="color:var(--accent-text)">₩0</div>
+        <div class="mdf-stat-label">집행 완료</div>
+      </div>
+      <div class="mdf-stat">
+        <div class="mdf-stat-val" id="mdf-remaining" style="color:var(--green)">₩0</div>
+        <div class="mdf-stat-label">잔여 예산</div>
+      </div>
+    </div>
+
+    <div class="card mdf-progress-wrap">
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:4px;">
+        <span>예산 집행률</span>
+        <span id="mdf-pct-label">0%</span>
+      </div>
+      <div class="mdf-prog-bar"><div class="mdf-prog-fill" id="mdf-prog-fill" style="width:0%"></div></div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text2);">활동 목록</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" style="font-size:12px;" onclick="openMdfBudgetModal()">⚙️ 예산 설정</button>
+        <button class="generate-btn" style="width:auto;padding:8px 18px;font-size:13px;" onclick="openMdfModal()">+ 활동 추가</button>
+      </div>
+    </div>
+
+    <div id="mdf-list"><div class="deal-empty">등록된 MDF 활동이 없습니다.</div></div>
+  </div>
+
+  <!-- ══════════ DEAL MODAL ══════════ -->
+  <div class="modal-overlay hidden" id="deal-modal">
+    <div class="modal-box">
+      <div class="modal-title" id="deal-modal-title">딜 등록</div>
+      <input type="hidden" id="dm-id" />
+      <div class="form-row">
+        <div>
+          <label>벤더</label>
+          <select id="dm-vendor">
+            <option>NVIDIA</option><option>Dell Technologies</option><option>Unity</option><option>기타</option>
+          </select>
+        </div>
+        <div>
+          <label>상태</label>
+          <select id="dm-status">
+            <option value="pending">대기중 Pending</option>
+            <option value="submitted">제출됨 Submitted</option>
+            <option value="approved">승인됨 Approved</option>
+            <option value="rejected">반려 Rejected</option>
+            <option value="closed_won">수주 Closed Won</option>
+            <option value="closed_lost">실패 Closed Lost</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>파트너사 (리셀러)</label>
+          <input type="text" id="dm-reseller" placeholder="예: ABC 테크놀로지" />
+        </div>
+        <div>
+          <label>최종 고객사</label>
+          <input type="text" id="dm-customer" placeholder="예: XYZ 제조" />
+        </div>
+      </div>
+      <div class="form-row full">
+        <label>제품 / 솔루션</label>
+        <input type="text" id="dm-product" placeholder="예: NVIDIA DGX H100, Dell VxRail, Unity Pro" />
+      </div>
+      <div class="form-row">
+        <div>
+          <label>예상 금액 (만원)</label>
+          <input type="number" id="dm-amount" placeholder="예: 5000" min="0" />
+        </div>
+        <div>
+          <label>예상 종결일</label>
+          <input type="date" id="dm-closedate" />
+        </div>
+      </div>
+      <div class="form-row full">
+        <label>비고 / 메모</label>
+        <textarea id="dm-note" placeholder="경쟁사 현황, 특이사항 등"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeDealModal()">취소</button>
+        <button class="generate-btn" style="width:auto;padding:9px 22px;font-size:13px;" onclick="saveDeal()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MDF ITEM MODAL ══════════ -->
+  <div class="modal-overlay hidden" id="mdf-modal">
+    <div class="modal-box">
+      <div class="modal-title" id="mdf-modal-title">MDF 활동 추가</div>
+      <input type="hidden" id="mm-id" />
+      <div class="form-row">
+        <div>
+          <label>벤더</label>
+          <select id="mm-vendor">
+            <option>NVIDIA</option><option>Dell Technologies</option><option>Unity</option><option>기타</option>
+          </select>
+        </div>
+        <div>
+          <label>활동 카테고리</label>
+          <select id="mm-category">
+            <option>세미나 / 웨비나</option>
+            <option>공동 마케팅</option>
+            <option>데모 장비 / POC</option>
+            <option>교육 / 인증</option>
+            <option>전시회 / 이벤트</option>
+            <option>디지털 광고</option>
+            <option>기타</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <label>활동명</label>
+        <input type="text" id="mm-title" placeholder="예: NVIDIA AI 솔루션 고객 세미나 (서울)" />
+      </div>
+      <div class="form-row">
+        <div>
+          <label>신청 금액 (만원)</label>
+          <input type="number" id="mm-amount" placeholder="예: 300" min="0" />
+        </div>
+        <div>
+          <label>집행 상태</label>
+          <select id="mm-status">
+            <option value="planned">계획됨</option>
+            <option value="approved">승인됨</option>
+            <option value="executed">집행 완료</option>
+            <option value="rejected">반려</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>활동 일정</label>
+          <input type="date" id="mm-date" />
+        </div>
+        <div>
+          <label>파트너사 (선택)</label>
+          <input type="text" id="mm-partner" placeholder="예: ABC 테크놀로지" />
+        </div>
+      </div>
+      <div class="form-row full">
+        <label>메모</label>
+        <textarea id="mm-note" placeholder="기대 효과, ROI 목표 등"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeMdfModal()">취소</button>
+        <button class="generate-btn" style="width:auto;padding:9px 22px;font-size:13px;" onclick="saveMdfItem()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MDF BUDGET MODAL ══════════ -->
+  <div class="modal-overlay hidden" id="mdf-budget-modal">
+    <div class="modal-box">
+      <div class="modal-title">분기 MDF 예산 설정</div>
+      <div class="form-row">
+        <div>
+          <label>NVIDIA MDF 예산 (만원)</label>
+          <input type="number" id="mb-nvidia" placeholder="예: 2000" min="0" />
+        </div>
+        <div>
+          <label>Dell MDF 예산 (만원)</label>
+          <input type="number" id="mb-dell" placeholder="예: 1500" min="0" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Unity MDF 예산 (만원)</label>
+          <input type="number" id="mb-unity" placeholder="예: 500" min="0" />
+        </div>
+        <div>
+          <label>기타 예산 (만원)</label>
+          <input type="number" id="mb-other" placeholder="예: 300" min="0" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeMdfBudgetModal()">취소</button>
+        <button class="generate-btn" style="width:auto;padding:9px 22px;font-size:13px;" onclick="saveMdfBudget()">저장</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<div class="save-toast" id="save-toast">저장되었습니다 ✓</div>
+
+<script>
+// ══════════ STATE ══════════
+let bVendor = 'NVIDIA', pVendor = 'NVIDIA';
+let bLang = 'ko', pLang = 'ko';
+let bData = null, pData = null;
+let qVendors = [], qDiff = 'all';
+let qQuestions = [], qIdx = 0, qAnswers = [], qAnswered = false;
+
+const PAGE_META = {
+  briefing:  { title: '미팅 브리핑 생성기',    sub: 'Vendor Meeting Briefing Generator' },
+  proposal:  { title: '리셀러 파트너 제안서 생성기', sub: 'Reseller Partnership Proposal Generator' },
+  quiz:      { title: '벤더 제품 지식 퀴즈',   sub: 'Vendor Product Knowledge Quiz' },
+  deal:      { title: '딜 등록 트래커',        sub: 'Deal Registration Tracker' },
+  mdf:       { title: 'MDF 예산 계획서',       sub: 'Market Development Fund Planner' },
+  history:   { title: '히스토리',             sub: 'Saved Briefings & Proposals' },
+  settings:  { title: '설정',               sub: 'API Keys & Integrations' }
+};
+
+// ══════════ NAVIGATION ══════════
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('topbar-title').textContent = PAGE_META[page].title;
+  document.getElementById('topbar-sub').textContent = PAGE_META[page].sub;
+  if (page === 'history') renderHistory();
+  if (page === 'settings') loadSettingsUI();
+  if (page === 'deal') renderDealList();
+  if (page === 'mdf') renderMdfSummary();
+}
+
+// ══════════ VENDOR CHIPS ══════════
+function initChips(containerId, setter) {
+  document.querySelectorAll(`#${containerId} .chip`).forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll(`#${containerId} .chip`).forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      setter(chip.dataset.vendor);
+    });
+  });
+}
+initChips('b-vendor-chips', v => bVendor = v);
+initChips('p-vendor-chips', v => pVendor = v);
+
+// ══════════ SETTINGS / localStorage ══════════
+function getSettings() {
+  try { return JSON.parse(localStorage.getItem('dpm_settings') || '{}'); } catch { return {}; }
+}
+function saveSettings() {
+  const s = {
+    apiType:    (document.getElementById('api-type-toggle')?.querySelector('.chip.active')?.dataset.api) || 'claude',
+    apiKey:     document.getElementById('s-apiKey')?.value || '',
+    geminiKey:  document.getElementById('s-geminiKey')?.value || '',
+    gsUrl:      document.getElementById('s-gsUrl')?.value || '',
+    distName:   document.getElementById('s-distName')?.value || '',
+    distContact:document.getElementById('s-distContact')?.value || ''
+  };
+  localStorage.setItem('dpm_settings', JSON.stringify(s));
+  updateGsBanner();
+}
+function loadSettingsUI() {
+  const s = getSettings();
+  const apiType = s.apiType || 'claude';
+  // API 타입 칩
+  document.querySelectorAll('#api-type-toggle .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.api === apiType);
+  });
+  document.getElementById('api-claude-section').style.display = apiType === 'claude' ? 'block' : 'none';
+  document.getElementById('api-gemini-section').style.display = apiType === 'gemini' ? 'block' : 'none';
+
+  document.getElementById('s-apiKey').value     = s.apiKey || '';
+  document.getElementById('s-geminiKey').value  = s.geminiKey || '';
+  document.getElementById('s-gsUrl').value      = s.gsUrl || '';
+  document.getElementById('s-distName').value   = s.distName || '';
+  document.getElementById('s-distContact').value= s.distContact || '';
+  updateGsBanner();
+
+  // 연결돼 있으면 동기화 버튼 보이기
+  const syncActions = document.getElementById('gs-sync-actions');
+  if (syncActions) syncActions.style.display = s.gsUrl ? 'flex' : 'none';
+}
+function selectApiType(type, el) {
+  document.querySelectorAll('#api-type-toggle .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('api-claude-section').style.display = type === 'claude' ? 'block' : 'none';
+  document.getElementById('api-gemini-section').style.display = type === 'gemini' ? 'block' : 'none';
+  saveSettings();
+}
+function getApiKey() {
+  const s = getSettings();
+  return (s.apiType === 'gemini') ? (s.geminiKey || '') : (s.apiKey || '');
+}
+function getApiType() { return getSettings().apiType || 'claude'; }
+
+// ── GS 배너 업데이트 ──
+function updateGsBanner() {
+  const s = getSettings();
+  const dot  = document.getElementById('gs-banner-dot');
+  const text = document.getElementById('gs-banner-text');
+  if (!dot || !text) return;
+  if (s.gsUrl) {
+    dot.style.background  = '#4caf50';
+    text.textContent      = 'Google Sheets 연결됨 — 데이터 자동 동기화 활성화';
+    text.style.color      = '#27500a';
+    const syncBtn = document.getElementById('gs-sync-actions');
+    if (syncBtn) syncBtn.style.display = 'flex';
+  } else {
+    dot.style.background  = 'var(--border2)';
+    text.textContent      = 'Google Sheets가 연결되지 않았습니다';
+    text.style.color      = 'var(--text2)';
+  }
+}
+function updateGSStatus(ok) { updateGsBanner(); } // 하위 호환
+
+async function testGoogleSheets() {
+  const url = document.getElementById('s-gsUrl').value.trim();
+  if (!url) { alert('URL을 먼저 입력하세요.'); return; }
+  const btn = document.getElementById('gs-test-btn');
+  btn.textContent = '테스트 중...'; btn.disabled = true;
+  try {
+    const res = await fetch(url + '?type=ping');
+    const data = await res.json();
+    if (data.ok) {
+      saveSettings();
+      updateGsBanner();
+      showToast('✅ Google Sheets 연결 성공!');
+    } else throw new Error('응답 오류');
+  } catch {
+    showToast('❌ 연결 실패 — URL을 확인해주세요');
+  } finally {
+    btn.textContent = '연결 테스트'; btn.disabled = false;
+  }
+}
+
+// ── GAS 코드 토글/복사 ──
+function toggleGasCode() {
+  const el = document.getElementById('gas-code-block');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function showGASCode() { toggleGasCode(); }
+function copyGasCode() {
+  const code = document.getElementById('gas-code-pre').textContent;
+  navigator.clipboard.writeText(code).then(() => showToast('코드가 복사되었습니다 ✓'));
+}
+
+// ── 전체 데이터 내보내기 ──
+function exportAllData() {
+  const data = {
+    deals:     getDeals(),
+    mdf:       getMdfItems(),
+    mdfBudget: getMdfBudget(),
+    history:   getHistory(),
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `pm-suite-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+function clearAllData() {
+  if (!confirm('⚠️ 로컬 데이터(딜, MDF, 히스토리)를 모두 삭제할까요?\n이 작업은 되돌릴 수 없습니다.')) return;
+  ['dpm_deals','dpm_mdf','dpm_mdf_budget','dpm_history'].forEach(k => localStorage.removeItem(k));
+  updateHistoryBadge(); updateDealBadge();
+  showToast('초기화 완료');
+}
+
+// ══════════ GOOGLE SHEETS 양방향 동기화 ══════════
+let lastSyncTime = null;
+
+async function pullFromSheets() {
+  const gsUrl = getSettings().gsUrl;
+  if (!gsUrl) return;
+  showToast('⬇ 시트에서 불러오는 중...');
+  try {
+    const [dealsRes, mdfRes, histRes, budgetRes] = await Promise.all([
+      fetch(gsUrl + '?type=deals'),
+      fetch(gsUrl + '?type=mdf'),
+      fetch(gsUrl + '?type=history'),
+      fetch(gsUrl + '?type=mdf_budget')
+    ]);
+    const deals  = await dealsRes.json();
+    const mdf    = await mdfRes.json();
+    const hist   = await histRes.json();
+    const budget = await budgetRes.json();
+
+    if (deals.data?.length)  { saveDeals(deals.data); }
+    if (mdf.data?.length)    { saveMdfItems(mdf.data); }
+    if (hist.data?.length)   { localStorage.setItem('dpm_history', JSON.stringify(hist.data)); updateHistoryBadge(); }
+    if (budget.data)         { saveMdfBudgetData(budget.data); }
+
+    lastSyncTime = new Date();
+    updateSyncTimestamp();
+    renderDealList();
+    renderMdfSummary();
+    showToast('✅ 시트에서 데이터를 불러왔습니다');
+  } catch(e) {
+    showToast('❌ 불러오기 실패 — ' + e.message);
+  }
+}
+
+async function pushAllToSheets() {
+  const gsUrl = getSettings().gsUrl;
+  if (!gsUrl) return;
+  showToast('⬆ 시트로 내보내는 중...');
+  try {
+    await Promise.all([
+      fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'deals', deals: getDeals() }) }),
+      fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'mdf',   items: getMdfItems() }) }),
+      fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'mdf_budget', ...getMdfBudget() }) })
+    ]);
+    lastSyncTime = new Date();
+    updateSyncTimestamp();
+    showToast('✅ 전체 데이터를 시트로 내보냈습니다');
+  } catch(e) {
+    showToast('❌ 내보내기 실패');
+  }
+}
+
+function updateSyncTimestamp() {
+  const el = document.getElementById('gs-banner-sync');
+  if (el && lastSyncTime) el.textContent = '최근 동기화 ' + lastSyncTime.toLocaleTimeString('ko-KR');
+}
+
+// ══════════ HISTORY ══════════
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('dpm_history') || '[]'); } catch { return []; }
+}
+function saveHistoryItem(item) {
+  const h = getHistory();
+  h.unshift({ ...item, id: Date.now(), date: new Date().toLocaleDateString('ko-KR') });
+  localStorage.setItem('dpm_history', JSON.stringify(h.slice(0, 50)));
+  updateHistoryBadge();
+  // sync to Google Sheets if configured
+  const gsUrl = getSettings().gsUrl;
+  if (gsUrl) {
+    fetch(gsUrl, { method: 'POST', body: JSON.stringify({ type: 'history', ...item, date: new Date().toLocaleDateString('ko-KR') }) }).catch(() => {});
+  }
+}
+function updateHistoryBadge() {
+  const count = getHistory().length;
+  const badge = document.getElementById('history-badge');
+  if (badge) badge.textContent = count;
+}
+function renderHistory() {
+  const h = getHistory();
+  const list = document.getElementById('history-list');
+  const countLabel = document.getElementById('history-count-label');
+  if (countLabel) countLabel.textContent = `총 ${h.length}개`;
+  if (!h.length) {
+    list.innerHTML = '<div class="history-empty">저장된 항목이 없습니다.<br>브리핑이나 제안서를 생성하고 저장해보세요.</div>';
+    return;
+  }
+  list.innerHTML = h.map(item => `
+    <div class="history-item">
+      <div class="history-item-header">
+        <span class="history-item-type ${item.toolType === 'proposal' ? 'type-proposal' : item.toolType === 'quiz' ? 'type-quiz' : ''}">${item.toolType === 'briefing' ? '브리핑' : item.toolType === 'proposal' ? '제안서' : '퀴즈'}</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="history-item-date">${item.date}</span>
+          <button class="history-delete-btn" onclick="deleteHistoryItem(${item.id}, event)">삭제</button>
+        </div>
+      </div>
+      <div class="history-item-title">${escHtml(item.title)}</div>
+      <div class="history-item-sub">${escHtml(item.vendor || '')} ${item.sub ? '· ' + escHtml(item.sub) : ''}</div>
+    </div>
+  `).join('');
+}
+function deleteHistoryItem(id, e) {
+  e.stopPropagation();
+  const h = getHistory().filter(i => i.id !== id);
+  localStorage.setItem('dpm_history', JSON.stringify(h));
+  updateHistoryBadge();
+  renderHistory();
+}
+function clearAllHistory() {
+  if (!confirm('히스토리를 모두 삭제할까요?')) return;
+  localStorage.removeItem('dpm_history');
+  updateHistoryBadge();
+  renderHistory();
+}
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ══════════ BRIEFING ══════════
+function bSwitchLang(lang) {
+  bLang = lang;
+  document.querySelectorAll('#page-briefing .lang-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(lang === 'ko' ? '한국어' : 'English')));
+  if (bData) renderBriefing(bData, lang);
+}
+
+// ── 공통 AI 호출 헬퍼 ──
+async function callAI(prompt) {
+  const apiKey  = getApiKey();
+  const apiType = getApiType();
+  if (!apiKey) throw new Error(apiType === 'claude'
+    ? '설정에서 Anthropic API Key(sk-ant-...)를 먼저 입력해주세요.'
+    : '설정에서 Gemini API Key를 먼저 입력해주세요.');
+
+  if (apiType === 'claude') {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type':         'application/json',
+        'x-api-key':            apiKey,
+        'anthropic-version':    '2023-06-01',
+        'anthropic-dangerous-direct-browser-calls': 'true'
+      },
+      body: JSON.stringify({
+        model:      'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages:   [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Claude API 오류');
+    let text = data.content?.[0]?.text || '';
+    return text.replace(/```json|```/g, '').trim();
+  } else {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Gemini API 오류');
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    return text.replace(/```json|```/g, '').trim();
+  }
+}
+
+async function generateBriefing() {
+  const purpose = document.getElementById('b-purpose').value.trim();
+  if (!purpose) { bShowError('미팅 목적을 입력해주세요.'); return; }
+  const meetingType = document.getElementById('b-meetingType').value;
+  const counterpart = document.getElementById('b-counterpart').value;
+  const context = document.getElementById('b-context').value.trim();
+
+  document.getElementById('b-generateBtn').disabled = true;
+  document.getElementById('b-loading').classList.add('visible');
+  document.getElementById('b-resultSection').classList.remove('visible');
+  document.getElementById('b-errorMsg').style.display = 'none';
+
+  const prompt = `당신은 한국의 클라우드 총판사(Distribution) 소속 파트너 프로그램 매니저입니다.
+아래 미팅 정보를 바탕으로 미팅 브리핑 문서를 작성해주세요.
+
+[미팅 정보]
+- 벤더: ${bVendor}
+- 미팅 유형: ${meetingType}
+- 상대방: ${counterpart}
+- 목적: ${purpose}
+- 배경/상황: ${context || '없음'}
+
+다음 JSON 형식으로만 응답해주세요 (마크다운 코드블록 없이 순수 JSON):
+{"ko":{"agenda":["아젠다 항목 3-4개"],"keyPoints":["핵심 제안/협상 포인트 3-4개"],"expectedQA":[{"q":"예상 질문","a":"답변 방향"},{"q":"...","a":"..."},{"q":"...","a":"..."}],"trends":"벤더 최근 동향 2-3문장","prepChecklist":["준비 체크리스트 3-4개"]},"en":{"agenda":["3-4 agenda items"],"keyPoints":["3-4 key negotiation points"],"expectedQA":[{"q":"question","a":"answer"},{"q":"...","a":"..."},{"q":"...","a":"..."}],"trends":"recent vendor trends 2-3 sentences","prepChecklist":["3-4 prep checklist items"]}}`;
+
+  try {
+    const text = await callAI(prompt);
+    bData = JSON.parse(text);
+    renderBriefing(bData, bLang);
+    document.getElementById('b-resultSection').classList.add('visible');
+  } catch (err) { bShowError('오류: ' + err.message); }
+  finally {
+    document.getElementById('b-generateBtn').disabled = false;
+    document.getElementById('b-loading').classList.remove('visible');
+  }
+}
+
+function renderBriefing(data, lang) {
+  const d = data[lang];
+  const L = lang === 'ko'
+    ? { agenda:'미팅 아젠다', points:'핵심 제안 & 협상 포인트', qa:'예상 Q&A', trends:'벤더 최근 동향', checklist:'사전 준비 체크리스트' }
+    : { agenda:'Meeting Agenda', points:'Key Proposal & Negotiation Points', qa:'Expected Q&A', trends:'Recent Vendor Trends', checklist:'Pre-meeting Checklist' };
+  document.getElementById('b-briefingContent').innerHTML = `
+    ${bBlock('A', L.agenda, '<ul>' + d.agenda.map(i => `<li>${escHtml(i)}</li>`).join('') + '</ul>')}
+    ${bBlock('P', L.points, '<ul>' + d.keyPoints.map(i => `<li>${escHtml(i)}</li>`).join('') + '</ul>')}
+    ${bBlock('Q', L.qa, d.expectedQA.map(i => `<div class="qa-item"><div class="qa-q">Q. ${escHtml(i.q)}</div><div class="qa-a">A. ${escHtml(i.a)}</div></div>`).join(''))}
+    ${bBlock('T', L.trends, `<p>${escHtml(d.trends)}</p>`)}
+    ${bBlock('C', L.checklist, d.prepChecklist.map(i => `<div class="check-item"><div class="check-box" onclick="this.classList.toggle('checked')"></div><span>${escHtml(i)}</span></div>`).join(''))}
+  `;
+}
+function bBlock(icon, title, content) {
+  return `<div class="briefing-block"><h3><span class="b-icon">${icon}</span>${escHtml(title)}</h3>${content}</div>`;
+}
+function bShowError(msg) {
+  const el = document.getElementById('b-errorMsg');
+  el.textContent = msg; el.style.display = 'block';
+}
+function saveBriefing() {
+  if (!bData) return;
+  const d = bData['ko'];
+  saveHistoryItem({ toolType: 'briefing', vendor: bVendor, title: `${bVendor} 미팅 브리핑 — ${document.getElementById('b-meetingType').value}`, sub: document.getElementById('b-purpose').value.slice(0, 40), content: JSON.stringify(bData) });
+  showToast('브리핑이 저장되었습니다 ✓');
+}
+
+// ══════════ PROPOSAL ══════════
+function pSwitchTab(tab) {
+  document.querySelectorAll('#page-proposal .tab').forEach(t => t.classList.toggle('active', t.textContent.includes(tab === 'email' ? '이메일' : '보고서')));
+  document.getElementById('p-emailTab').classList.toggle('visible', tab === 'email');
+  document.getElementById('p-reportTab').classList.toggle('visible', tab === 'report');
+}
+function pSwitchLang(lang) {
+  pLang = lang;
+  document.querySelectorAll('#page-proposal .lang-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(lang === 'ko' ? '한국어' : 'English')));
+  if (pData) renderProposal(pData, lang);
+}
+
+async function generateProposal() {
+  const resellerName = document.getElementById('p-resellerName').value.trim();
+  if (!resellerName) { pShowError('파트너사 이름을 입력해주세요.'); return; }
+
+  const s = getSettings();
+  const distName = document.getElementById('p-distName').value.trim() || s.distName || '메가존 클라우드';
+  const distContact = document.getElementById('p-distContact').value.trim() || s.distContact || 'Distribution PM';
+  const resellerBiz = document.getElementById('p-resellerBiz').value.trim();
+  const resellerStrength = document.getElementById('p-resellerStrength').value.trim();
+  const margin = document.getElementById('p-margin').value;
+  const onboarding = document.getElementById('p-onboarding').value;
+  const extraPoints = document.getElementById('p-extraPoints').value.trim();
+
+  document.getElementById('p-generateBtn').disabled = true;
+  document.getElementById('p-loading').classList.add('visible');
+  document.getElementById('p-resultSection').classList.remove('visible');
+  document.getElementById('p-errorMsg').style.display = 'none';
+
+  const prompt = `당신은 한국의 클라우드 총판사 Distribution PM입니다. 아래 정보로 리셀러 파트너십 제안서를 작성해주세요.
+[정보]
+- 총판사: ${distName} / 담당자: ${distContact}
+- 제안 벤더: ${pVendor}
+- 파트너사: ${resellerName} / 사업: ${resellerBiz || '미입력'}
+- 파트너사 강점: ${resellerStrength || '미입력'}
+- 예상 마진율: ${margin}
+- 온보딩 기간: ${onboarding}
+- 추가 제안: ${extraPoints || '없음'}
+
+아래 JSON 형식으로만 응답 (마크다운 코드블록 없이 순수 JSON):
+{"ko":{"emailSubject":"이메일 제목","emailTo":"${resellerName} 담당자","emailBody":"이메일 본문 전체 (줄바꿈은 \\n)","report":{"intro":"2-3문장","positioning":"2-3문장","marginItems":[{"label":"항목","value":"값"},{"label":"항목","value":"값"},{"label":"항목","value":"값"}],"onboardingSteps":["1단계","2단계","3단계","4단계"],"nextSteps":["액션1","액션2","액션3"]}},"en":{"emailSubject":"subject","emailTo":"${resellerName} Team","emailBody":"full email (use \\n)","report":{"intro":"2-3 sentences","positioning":"2-3 sentences","marginItems":[{"label":"item","value":"val"},{"label":"item","value":"val"},{"label":"item","value":"val"}],"onboardingSteps":["step1","step2","step3","step4"],"nextSteps":["action1","action2","action3"]}}}`;
+
+  try {
+    const text = await callAI(prompt);
+    pData = JSON.parse(text);
+    renderProposal(pData, pLang);
+    document.getElementById('p-resultSection').classList.add('visible');
+  } catch (err) { pShowError('오류: ' + err.message); }
+  finally {
+    document.getElementById('p-generateBtn').disabled = false;
+    document.getElementById('p-loading').classList.remove('visible');
+  }
+}
+
+function renderProposal(data, lang) {
+  const d = data[lang];
+  document.getElementById('p-emailTo').textContent = d.emailTo;
+  document.getElementById('p-emailSubject').textContent = d.emailSubject;
+  document.getElementById('p-emailBody').textContent = d.emailBody;
+  const r = d.report;
+  const L = lang === 'ko'
+    ? { intro:'파트너사 소개 & 배경', pos:'제안 서비스 & 벤더 포지셔닝', margin:'예상 수익 & 마진 구조', onboard:'온보딩 프로세스', next:'다음 스텝' }
+    : { intro:'Partner Introduction & Background', pos:'Proposed Services & Vendor Positioning', margin:'Expected Revenue & Margin Structure', onboard:'Onboarding Process', next:'Next Steps' };
+  document.getElementById('p-reportContent').innerHTML = `
+    ${rBlock('P', L.intro, `<p>${escHtml(r.intro)}</p>`)}
+    ${rBlock('V', L.pos, `<p>${escHtml(r.positioning)}</p>`)}
+    ${rBlock('M', L.margin, r.marginItems.map(i => `<div class="margin-row"><span>${escHtml(i.label)}</span><span>${escHtml(i.value)}</span></div>`).join(''))}
+    ${rBlock('O', L.onboard, r.onboardingSteps.map((s, i) => `<div class="step-item"><div class="step-num">${i+1}</div><span style="font-size:14px;line-height:1.6;">${escHtml(s)}</span></div>`).join(''))}
+    ${rBlock('N', L.next, '<ul>' + r.nextSteps.map(s => `<li>${escHtml(s)}</li>`).join('') + '</ul>')}
+  `;
+}
+function rBlock(icon, title, content) {
+  return `<div class="report-block"><h3><span class="r-icon">${icon}</span>${escHtml(title)}</h3>${content}</div>`;
+}
+function pShowError(msg) {
+  const el = document.getElementById('p-errorMsg');
+  el.textContent = msg; el.style.display = 'block';
+}
+function copyEmail() {
+  const body = document.getElementById('p-emailBody').textContent;
+  navigator.clipboard.writeText(body).then(() => {
+    const btn = document.querySelector('#page-proposal .copy-btn');
+    btn.textContent = '복사됨 ✓';
+    setTimeout(() => btn.textContent = '복사', 1500);
+  });
+}
+function saveProposal() {
+  if (!pData) return;
+  saveHistoryItem({ toolType: 'proposal', vendor: pVendor, title: pData['ko'].emailSubject || `${pVendor} 리셀러 제안서`, sub: document.getElementById('p-resellerName').value, content: JSON.stringify(pData) });
+  showToast('제안서가 저장되었습니다 ✓');
+}
+
+// ══════════ QUIZ ══════════
+const ALL_QUESTIONS = [
+  // NVIDIA
+  { vendor:"NVIDIA", diff:"basic", en:"What does GPU stand for?", kr:"GPU의 약자는?", options:["General Processing Unit","Graphics Processing Unit","Global Processing Utility","Geometric Processing Unit"], correct:1, explain:"GPU(Graphics Processing Unit)는 원래 그래픽 렌더링을 위해 설계되었으나, 병렬 연산 능력 덕분에 AI/ML 학습과 추론에도 핵심 부품으로 자리잡았습니다." },
+  { vendor:"NVIDIA", diff:"basic", en:"What is NVIDIA's AI supercomputer platform for enterprises called?", kr:"NVIDIA의 엔터프라이즈용 AI 슈퍼컴퓨터 플랫폼 이름은?", options:["NVIDIA HPC","DGX System","NVIDIA CloudPlatform","AI SuperStation"], correct:1, explain:"DGX 시스템은 NVIDIA의 플래그십 AI 슈퍼컴퓨터 라인업. DGX H100은 최대 8개의 H100 SXM GPU를 탑재하며 AI 연구 및 LLM 학습에 최적화되어 있습니다." },
+  { vendor:"NVIDIA", diff:"basic", en:"What is NVIDIA's software platform for AI and data science?", kr:"AI 및 데이터 사이언스를 위한 NVIDIA의 소프트웨어 플랫폼은?", options:["CUDA","OpenCL","TensorFlow","PyTorch"], correct:0, explain:"CUDA(Compute Unified Device Architecture)는 NVIDIA GPU에서 병렬 컴퓨팅을 가능하게 하는 플랫폼 및 API 모델입니다. AI/ML 생태계의 기반입니다." },
+  { vendor:"NVIDIA", diff:"advanced", en:"What is the NVLink interconnect primarily used for in DGX systems?", kr:"DGX 시스템에서 NVLink 인터커넥트의 주요 용도는?", options:["CPU to storage connection","High-bandwidth GPU-to-GPU communication","External display output","Network switching"], correct:1, explain:"NVLink는 GPU 간 고대역폭 직접 연결을 제공합니다. PCIe 대비 훨씬 높은 대역폭으로 멀티-GPU 학습 효율을 극대화합니다." },
+  { vendor:"NVIDIA", diff:"basic", en:"What is NVIDIA DGX Cloud?", kr:"NVIDIA DGX Cloud란?", options:["A local server product","AI supercomputing as a cloud service","A GPU driver package","A VR rendering service"], correct:1, explain:"DGX Cloud는 주요 CSP(Oracle, Microsoft, Google, AWS)를 통해 DGX AI 컴퓨팅 인프라를 클라우드 서비스로 제공합니다. 기업이 하드웨어 없이 DGX 성능을 활용 가능합니다." },
+  { vendor:"NVIDIA", diff:"advanced", en:"What does NVIDIA NIM stand for?", kr:"NVIDIA NIM의 약자는?", options:["Neural Interface Module","NVIDIA Inference Microservice","Network Integration Manager","Numeric Iteration Model"], correct:1, explain:"NIM(NVIDIA Inference Microservice)는 최적화된 AI 모델 추론을 컨테이너로 제공하는 서비스. 기업이 자체 인프라에 LLM 등을 쉽게 배포할 수 있게 합니다." },
+  { vendor:"NVIDIA", diff:"basic", en:"Which NVIDIA product line is designed for workstation AI use cases?", kr:"워크스테이션 AI 용도로 설계된 NVIDIA 제품 라인은?", options:["GeForce","Tesla","RTX / RTX Pro","Quadro Max"], correct:2, explain:"NVIDIA RTX(및 RTX Pro) 시리즈는 전문가용 워크스테이션에 최적화. Tensor Core를 탑재해 AI 추론·렌더링·시뮬레이션을 가속합니다." },
+  { vendor:"NVIDIA", diff:"advanced", en:"What is NVIDIA's platform for running AI inference in production environments called?", kr:"프로덕션 환경에서 AI 추론을 실행하는 NVIDIA 플랫폼은?", options:["CUDA Runtime","Triton Inference Server","TensorRT Studio","NVIDIA Serve"], correct:1, explain:"Triton Inference Server는 다양한 AI 프레임워크의 모델을 프로덕션에서 효율적으로 서빙하는 NVIDIA의 오픈소스 추론 서버입니다." },
+  { vendor:"NVIDIA", diff:"basic", en:"What is the HGX platform?", kr:"HGX 플랫폼이란?", options:["A cloud gaming service","A server baseboard with multiple GPUs for hyperscalers","A developer SDK","A GPU benchmark tool"], correct:1, explain:"HGX는 하이퍼스케일 데이터센터를 위한 NVIDIA GPU 기반 서버 플랫폼. DGX가 NVIDIA 완성형 시스템이라면 HGX는 OEM이 자체 서버에 통합하는 GPU 보드 플랫폼입니다." },
+  { vendor:"NVIDIA", diff:"advanced", en:"In channel sales, what is 'deal registration' for NVIDIA products?", kr:"NVIDIA 제품의 채널 영업에서 '딜 등록(deal registration)'이란?", options:["Registering for NVIDIA developer access","A process where resellers register opportunities to receive price protection and margin support","Filing a product warranty claim","Registering a DGX system serial number"], correct:1, explain:"딜 등록은 파트너가 기회를 벤더에 사전 등록해 가격 보호와 추가 마진(back-end rebate)을 확보하는 채널 프로세스입니다. 총판 PM의 핵심 업무 중 하나입니다." },
+  { vendor:"NVIDIA", diff:"basic", en:"What is NVIDIA RAPIDS?", kr:"NVIDIA RAPIDS란?", options:["A GPU overclocking tool","A suite of open-source software libraries for GPU-accelerated data science","A cloud gaming platform","A neural network training framework"], correct:1, explain:"RAPIDS는 Apache Arrow 기반으로 pandas·scikit-learn 등 데이터 사이언스 워크플로우를 GPU로 가속하는 오픈소스 라이브러리 모음입니다." },
+  { vendor:"NVIDIA", diff:"advanced", en:"What is InfiniBand and why is it important in AI clusters?", kr:"InfiniBand란 무엇이며 AI 클러스터에서 왜 중요한가?", options:["A wireless protocol","A high-speed, low-latency network interconnect critical for GPU cluster communication","A type of storage interface","A CPU cache technology"], correct:1, explain:"InfiniBand는 초저지연·고대역폭 네트워크로 멀티-노드 GPU 클러스터 간 통신에 필수. NVIDIA Quantum InfiniBand 스위치는 대규모 AI 학습 클러스터의 표준 네트워크입니다." },
+  { vendor:"NVIDIA", diff:"basic", en:"What does NVIDIA's partner program certification 'Elite' status indicate?", kr:"NVIDIA 파트너 프로그램 'Elite' 등급이 의미하는 것은?", options:["Basic reseller access","Highest tier with maximum discounts, deal registration priority, and co-selling support","A technical certification only","A program for end-users"], correct:1, explain:"Elite는 NVIDIA 채널 파트너 프로그램의 최상위 등급. 더 높은 마진, 딜 등록 우선권, 마케팅 펀드, 전용 채널 매니저 지원이 제공됩니다." },
+  { vendor:"NVIDIA", diff:"advanced", en:"What is NVIDIA Base Command Platform?", kr:"NVIDIA Base Command Platform이란?", options:["A GPU driver management tool","An AI operations platform for managing multi-node AI training clusters","A cloud rendering service","A GPU benchmark suite"], correct:1, explain:"Base Command Platform은 대규모 AI 학습 클러스터의 잡 스케줄링, 리소스 관리, 모니터링을 통합 관리하는 AI 운영 플랫폼입니다." },
+  { vendor:"NVIDIA", diff:"basic", en:"Which GPU architecture followed Ampere in NVIDIA's data center lineup?", kr:"NVIDIA 데이터센터 라인업에서 Ampere 다음 아키텍처는?", options:["Turing","Hopper","Ada Lovelace","Blackwell"], correct:1, explain:"Hopper 아키텍처(H100)는 Ampere(A100) 다음 세대로 Transformer 엔진을 탑재해 LLM 학습·추론 성능을 대폭 향상했습니다. 이후 Blackwell(B100/B200)이 출시되었습니다." },
+  { vendor:"NVIDIA", diff:"advanced", en:"What distinguishes NVIDIA's H100 SXM from H100 PCIe?", kr:"NVIDIA H100 SXM과 H100 PCIe의 차이점은?", options:["Different memory size","SXM uses NVLink/NVSwitch for higher inter-GPU bandwidth; PCIe uses standard slot","Different CUDA core count","SXM is for consumer use only"], correct:1, explain:"H100 SXM은 NVLink/NVSwitch로 GPU 간 900GB/s 대역폭 제공. PCIe 버전은 표준 슬롯 장착으로 유연성이 높지만 GPU 간 대역폭이 낮습니다. DGX/HGX는 SXM을 사용합니다." },
+  { vendor:"NVIDIA", diff:"basic", en:"What is NVIDIA AI Enterprise?", kr:"NVIDIA AI Enterprise란?", options:["A consumer GPU product","An enterprise software suite for AI/ML workloads including support and security","A cloud gaming service","A workstation OS"], correct:1, explain:"NVIDIA AI Enterprise는 기업용 AI 소프트웨어 플랫폼. NIM, Triton, RAPIDS, TAO Toolkit 등을 포함하며 엔터프라이즈급 지원과 보안을 제공합니다. 총판이 VMware/Red Hat처럼 SW 라이선스로 판매합니다." },
+
+  // DELL
+  { vendor:"Dell", diff:"basic", en:"What does Dell APEX refer to?", kr:"Dell APEX란 무엇인가요?", options:["A new server brand","Dell's as-a-service portfolio for cloud-like consumption models","A storage protocol","A hypervisor platform"], correct:1, explain:"Dell APEX는 서버·스토리지·클라우드 인프라를 구독 또는 종량제(as-a-service)로 제공하는 포트폴리오. 기업이 Capex 부담 없이 인프라를 소비 가능합니다." },
+  { vendor:"Dell", diff:"basic", en:"What is Dell PowerEdge?", kr:"Dell PowerEdge란?", options:["Dell's laptop line","Dell's enterprise server product line","A storage array brand","A networking switch series"], correct:1, explain:"PowerEdge는 Dell의 엔터프라이즈 서버 라인업. 1U~4U 랙 서버, 타워, 블레이드, 모듈러 등 다양한 폼팩터를 포함하며 데이터센터의 핵심 인프라입니다." },
+  { vendor:"Dell", diff:"advanced", en:"What is VxRail?", kr:"VxRail이란?", options:["A Dell storage solution","A hyperconverged infrastructure appliance jointly developed by Dell and VMware","A network monitoring tool","A cloud management platform"], correct:1, explain:"VxRail은 Dell과 VMware가 공동 개발한 HCI(하이퍼컨버지드 인프라) 어플라이언스. vSAN, vSphere, NSX와 완전히 통합되며 VMware 환경의 단순화·자동화를 목표로 합니다." },
+  { vendor:"Dell", diff:"basic", en:"What is Dell PowerStore?", kr:"Dell PowerStore란?", options:["A cloud backup service","A midrange all-flash storage array with data reduction and multi-cloud capabilities","A server management tool","A networking product"], correct:1, explain:"PowerStore는 Dell의 미드레인지 올플래시 스토리지. AppsON 기능으로 스토리지 위에 직접 VM 실행이 가능하고, 데이터 중복제거·압축으로 효율적인 용량 관리를 제공합니다." },
+  { vendor:"Dell", diff:"advanced", en:"In Dell's channel program, what is a 'Titanium' partner?", kr:"Dell 채널 프로그램에서 'Titanium' 파트너란?", options:["A new partner tier","The highest tier in Dell Technologies Partner Program with maximum benefits","A certified technical partner only","A hardware-only reseller"], correct:1, explain:"Dell Technologies Partner Program의 최상위 등급(Titanium/Titanium Black). 최대 할인율, 우선 딜 등록, 전담 채널 매니저, 마케팅 펀드를 제공합니다." },
+  { vendor:"Dell", diff:"basic", en:"What is Dell's primary hyperconverged infrastructure brand for SMB?", kr:"Dell의 중소기업용 하이퍼컨버지드 인프라 브랜드는?", options:["PowerEdge","VxRail","Dell EMC Unity","HCI Flex"], correct:1, explain:"VxRail은 엔터프라이즈, Dell APEX HCI는 서비스형으로, 중소~대기업 모두를 커버합니다. SMB에는 PowerEdge+VMware 조합 또는 더 작은 VxRail 구성이 일반적입니다." },
+  { vendor:"Dell", diff:"advanced", en:"What is Dell's Luminous (PowerFlex) solution?", kr:"Dell PowerFlex 솔루션이란?", options:["A new laptop brand","A software-defined storage and HCI platform for cloud-scale deployments","A network switch product","A server management OS"], correct:1, explain:"PowerFlex(구 VxFlex/ScaleIO)는 소프트웨어 정의 스토리지 기반 HCI 플랫폼. 수백 노드까지 선형 확장 가능하며 클라우드 스케일 인프라에 적합합니다." },
+  { vendor:"Dell", diff:"basic", en:"What is Dell OpenManage?", kr:"Dell OpenManage란?", options:["A cloud storage service","A suite of server lifecycle management tools","A security software","A virtualization platform"], correct:1, explain:"Dell OpenManage는 서버 프로비저닝, 설정, 모니터링, 패치 관리를 포괄하는 서버 라이프사이클 관리 제품군. iDRAC 원격 관리와 연동됩니다." },
+  { vendor:"Dell", diff:"advanced", en:"What is the role of iDRAC in Dell server management?", kr:"Dell 서버 관리에서 iDRAC의 역할은?", options:["Storage controller","Out-of-band remote management controller for servers","Network interface card","GPU management module"], correct:1, explain:"iDRAC(Integrated Dell Remote Access Controller)는 서버 전원과 무관하게 원격에서 서버를 관리할 수 있는 BMC. 원격 콘솔, 전원 제어, 펌웨어 업데이트 등이 가능합니다." },
+  { vendor:"Dell", diff:"basic", en:"What is Dell's primary enterprise storage brand for high-end workloads?", kr:"Dell의 하이엔드 엔터프라이즈 스토리지 브랜드는?", options:["PowerVault","PowerStore","PowerMax","EqualLogic"], correct:2, explain:"PowerMax는 Dell의 최상위 엔터프라이즈 올플래시 스토리지. 99.9999% 가용성과 AI 기반 자동화를 제공하며 미션 크리티컬 워크로드에 사용됩니다." },
+  { vendor:"Dell", diff:"advanced", en:"What does MDF stand for in the context of Dell partner programs?", kr:"Dell 파트너 프로그램에서 MDF란?", options:["Managed Data Framework","Market Development Funds — budget provided by vendors to partners for marketing activities","Multi-Dimensional Filtering","Master Distribution Format"], correct:1, explain:"MDF(Market Development Funds)는 벤더가 파트너의 마케팅 활동을 지원하기 위해 제공하는 예산. 이벤트, 광고, 트레이닝 등에 활용 가능하며 총판 PM이 집행을 관리합니다." },
+  { vendor:"Dell", diff:"basic", en:"What is Dell Validated Design?", kr:"Dell Validated Design이란?", options:["A cloud security standard","Pre-engineered infrastructure solutions tested and validated by Dell for specific workloads","A server warranty program","A partner certification"], correct:1, explain:"Validated Design은 특정 워크로드(AI, 가상화, VDI 등)에 최적화된 사전 검증 인프라 솔루션. 설계 및 구축 시간을 단축하고 리스크를 줄여줍니다." },
+  { vendor:"Dell", diff:"advanced", en:"In the context of Dell distribution, what is a 'back-end rebate'?", kr:"Dell 총판에서 '백엔드 리베이트(back-end rebate)'란?", options:["A product return policy","Performance-based financial incentives paid to partners after meeting sales targets","A front-end discount on purchase price","A warranty reimbursement"], correct:1, explain:"백엔드 리베이트는 파트너가 판매 목표·인증·마케팅 조건을 달성했을 때 벤더가 사후 지급하는 인센티브. 프런트엔드 할인과 별도로 파트너 수익성을 높이는 핵심 요소입니다." },
+  { vendor:"Dell", diff:"basic", en:"What distinguishes Dell PowerScale from PowerStore?", kr:"Dell PowerScale과 PowerStore의 차이는?", options:["PowerScale is for block storage; PowerStore is for file","PowerScale is a scale-out NAS for unstructured data; PowerStore is a midrange multi-protocol array","They are the same product","PowerScale is a server; PowerStore is a switch"], correct:1, explain:"PowerScale(구 Isilon)은 비정형 데이터(파일·미디어·분석)를 위한 스케일아웃 NAS. PowerStore는 블록·파일·vVol을 지원하는 미드레인지 올플래시 어레이입니다." },
+  { vendor:"Dell", diff:"advanced", en:"What is Dell's strategy called that combines on-premises and cloud infrastructure management?", kr:"온프레미스와 클라우드 인프라 관리를 결합하는 Dell의 전략은?", options:["Dell MultiCloud","Dell APEX Multi-Cloud by Design","Dell Hybrid Connect","Dell Cloud Bridge"], correct:1, explain:"Dell의 'Multi-Cloud by Design' 전략은 온프레미스, 엣지, 퍼블릭 클라우드를 일관된 방식으로 관리하는 접근법. APEX 포트폴리오와 연계하여 유연한 소비 모델을 제공합니다." },
+  { vendor:"Dell", diff:"basic", en:"What is Dell's channel for selling to commercial SMB customers called?", kr:"Dell이 중소기업 고객에게 판매하는 채널은?", options:["Dell Direct","Dell Partner Program — Authorized/Gold tiers","Dell Consumer","Dell CSP only"], correct:1, explain:"Dell은 Authorized, Gold, Platinum, Titanium 등 파트너 등급을 통해 리셀러가 SMB~엔터프라이즈를 커버합니다. 총판은 Gold 이상 파트너를 주로 지원합니다." },
+  { vendor:"Dell", diff:"advanced", en:"What is Dell EMC Unity XT designed for?", kr:"Dell EMC Unity XT의 설계 목적은?", options:["Hyperscale data centers only","Midrange all-flash storage for mixed workloads in enterprise and SMB environments","Entry-level desktop storage","Only NAS file services"], correct:1, explain:"Unity XT는 블록·파일·vVol을 지원하는 미드레인지 올플래시 스토리지. SMB~중견 엔터프라이즈의 혼합 워크로드에 최적화되어 있으며 PowerStore 이전 세대 제품입니다." },
+
+  // UNITY
+  { vendor:"Unity", diff:"basic", en:"Unity is primarily known as what type of platform?", kr:"Unity는 주로 어떤 유형의 플랫폼으로 알려져 있나요?", options:["A cloud storage service","A real-time 3D development platform and game engine","A database management system","A network security tool"], correct:1, explain:"Unity는 실시간 3D 콘텐츠 개발 플랫폼으로 게임, 시뮬레이션, XR, 건축 시각화 등 다양한 산업에서 사용됩니다." },
+  { vendor:"Unity", diff:"basic", en:"Unity Muse is described as what type of product?", kr:"Unity Muse는 어떤 유형의 제품인가요?", options:["A game engine update","An AI-powered creative assistant for Unity development","A cloud rendering service","A mobile analytics platform"], correct:1, explain:"Unity Muse는 AI 기반 크리에이티브 어시스턴트. 텍스트 프롬프트로 스크립트·애니메이션·텍스처 생성을 지원하며 개발 생산성 향상이 목적입니다." },
+  { vendor:"Unity", diff:"basic", en:"What is Unity's cloud services platform called?", kr:"Unity의 클라우드 서비스 플랫폼 이름은?", options:["Unity Cloud","Unity Web Services","Unity Connect","Unity Online"], correct:0, explain:"Unity Cloud(구 Unity Gaming Services, UGS)는 멀티플레이어·인증·분석·광고 등 게임 및 앱 백엔드 서비스를 통합 제공하는 플랫폼입니다." },
+  { vendor:"Unity", diff:"advanced", en:"What is DOTS in Unity's development stack?", kr:"Unity 개발 스택에서 DOTS란 무엇인가요?", options:["Dynamic Object Tracking System","Data-Oriented Technology Stack for high-performance game development","Desktop Operating and Testing Suite","Distributed Online Testing Service"], correct:1, explain:"DOTS(Data-Oriented Technology Stack)는 ECS·C# Job System·Burst Compiler를 결합해 고성능 게임 개발을 가능케 하는 Unity의 아키텍처 스택입니다." },
+  { vendor:"Unity", diff:"advanced", en:"Which scripting backend does Unity recommend for maximum performance on mobile?", kr:"모바일에서 최고 성능을 위해 Unity가 권장하는 스크립팅 백엔드는?", options:["Mono","IL2CPP","Roslyn","WASM"], correct:1, explain:"IL2CPP(Intermediate Language to C++)는 C# IL을 C++로 변환해 네이티브 코드로 컴파일. Mono 대비 런타임 성능이 높고 코드 스트리핑으로 바이너리 크기도 줄일 수 있습니다." },
+  { vendor:"Unity", diff:"advanced", en:"Unity's Addressables system is used to solve what problem?", kr:"Unity Addressables 시스템이 해결하는 문제는?", options:["GPU memory allocation","Dynamic content loading and asset management at runtime","Network packet addressing","Shader compilation"], correct:1, explain:"Addressables는 런타임 동적 콘텐츠 로딩·에셋 관리 시스템. 빌드 사이즈 최적화, 핫픽스 없는 콘텐츠 업데이트, 에셋 번들 관리를 단순화합니다." },
+  { vendor:"Unity", diff:"basic", en:"What is Unity's render pipeline designed for high-end visuals called?", kr:"고품질 시각화를 위한 Unity 렌더 파이프라인 이름은?", options:["Built-in RP","Universal Render Pipeline","High Definition Render Pipeline","Hybrid RP"], correct:2, explain:"HDRP(High Definition Render Pipeline)는 PC·콘솔 등 고사양 플랫폼용 포토리얼리스틱 렌더 파이프라인. URP는 범용·모바일 최적화, Built-in RP는 구형 파이프라인입니다." },
+  { vendor:"Unity", diff:"advanced", en:"What was Unity's acquisition of ironSource in 2022 primarily about?", kr:"2022년 Unity의 ironSource 인수 목적은?", options:["Game engine technology","Mobile advertising and monetization platform","Cloud infrastructure","AI research capabilities"], correct:1, explain:"ironSource는 모바일 앱 광고·수익화·UA 플랫폼. Unity Ads와 통합해 Unity의 광고·성장 플랫폼 사업을 강화하려는 목적이었습니다." },
+  { vendor:"Unity", diff:"basic", en:"Unity supports development for which platforms? (Best answer)", kr:"Unity가 지원하는 플랫폼은?", options:["Mobile only","PC and console only","Cross-platform: mobile, PC, console, web, XR, and embedded","Unity supports only Windows"], correct:2, explain:"Unity는 iOS, Android, Windows, macOS, PS/Xbox, WebGL, Vision Pro 등 20개 이상의 플랫폼을 지원하는 크로스플랫폼 엔진이 핵심 경쟁력입니다." },
+  { vendor:"Unity", diff:"advanced", en:"In Unity's licensing model, which tier is required for companies exceeding $200K annual revenue?", kr:"연 매출 $200K 초과 기업에게 필요한 Unity 라이선스 티어는?", options:["Personal","Plus","Pro or Industry","Enterprise only"], correct:2, explain:"Unity Pro 이상은 연 매출 $200K 초과 기업에 필수. Industry 티어는 비게임 산업용으로 별도 가격 구조를 가집니다. 최근 정책 변경으로 최신 공식 문서 확인 권장." },
+  { vendor:"Unity", diff:"basic", en:"What is Unity Sentis?", kr:"Unity Sentis란 무엇인가요?", options:["A game analytics service","A runtime neural network inference engine for Unity","A cloud save system","A multiplayer matchmaking service"], correct:1, explain:"Unity Sentis는 Unity 런타임 내에서 ONNX 형식 신경망 모델을 직접 실행할 수 있는 추론 엔진. 게임 내 AI 기능을 on-device로 구현 가능합니다." },
+  { vendor:"Unity", diff:"advanced", en:"What is the Unity Distribution Portal (UDP)?", kr:"Unity Distribution Portal (UDP)이란?", options:["A game engine download center","A single platform to distribute mobile games to multiple app stores simultaneously","A cloud CDN for game assets","A developer documentation hub"], correct:1, explain:"UDP는 개발자가 하나의 빌드로 Samsung Galaxy Store, Huawei, ONE store 등 다수의 안드로이드 앱 마켓에 동시 배포할 수 있는 플랫폼입니다." },
+  { vendor:"Unity", diff:"basic", en:"Unity's Plastic SCM (now Unity Version Control) provides what functionality?", kr:"Unity Plastic SCM(현 Unity Version Control)의 기능은?", options:["Game analytics and A/B testing","Version control and source code management integrated with Unity","Cloud rendering","Asset store management"], correct:1, explain:"Unity Version Control(구 Plastic SCM)은 Unity에 통합된 버전 관리·소스 코드 관리 시스템. 대용량 바이너리 에셋과 씬 머지를 지원하는 게임 개발 특화 기능이 강점입니다." },
+  { vendor:"Unity", diff:"advanced", en:"What distinguishes a 'Distribution PM' role when working with Unity as a vendor?", kr:"Unity 벤더 협력 시 Distribution PM의 역할 차별점은?", options:["Only managing game studio accounts","Managing reseller margin, licensing tier compliance, and co-sell motions across Unity's product portfolio","Only handling technical support escalations","Managing Unity's public cloud infrastructure"], correct:1, explain:"Distribution PM은 리셀러 마진 구조, 라이선스 티어 컴플라이언스, 공동 영업(co-sell) 활동을 전반적으로 관리. Unity의 제품 포트폴리오(Pro, Industry, Cloud, Ads) 전체를 파트너 관점에서 조율합니다." },
+  { vendor:"Unity", diff:"basic", en:"What is Unity's Industry product line focused on?", kr:"Unity Industry 제품 라인의 초점은?", options:["Mobile gaming only","Non-gaming industries like automotive, manufacturing, architecture, and simulation","Cloud computing","Educational games"], correct:1, explain:"Unity Industry는 게임 외 산업(자동차, 제조, AEC, 방위, 헬스케어)에 특화된 라이선스 티어. 디지털 트윈, 시뮬레이션, XR 트레이닝 등에 활용됩니다." },
+  { vendor:"Unity", diff:"advanced", en:"What is Unity's approach to real-time digital twins?", kr:"Unity의 실시간 디지털 트윈 접근 방식은?", options:["Unity does not support digital twins","Using Unity's real-time 3D engine combined with IoT data to create live operational simulations","Only static 3D models without data connectivity","Exclusively through cloud rendering"], correct:1, explain:"Unity는 실시간 3D 렌더링 엔진과 IoT/센서 데이터를 연결해 공장·인프라·도시의 라이브 디지털 트윈을 구현합니다. 산업용 시뮬레이션과 운영 최적화에 활용됩니다." }
+];
+
+function toggleQuizVendor(el) {
+  const v = el.dataset.v;
+  if (qVendors.includes(v)) { qVendors = qVendors.filter(x => x !== v); el.classList.remove('selected'); }
+  else { qVendors.push(v); el.classList.add('selected'); }
+  updateQStartBtn();
+}
+function selectQuizDiff(el) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  qDiff = el.dataset.d;
+}
+function updateQStartBtn() {
+  const btn = document.getElementById('q-start-btn');
+  if (!qVendors.length) { btn.disabled = true; btn.textContent = '벤더를 선택하세요'; return; }
+  btn.disabled = false;
+  const label = qVendors.length === 3 ? 'Mixed 전체' : qVendors.join(' + ');
+  btn.textContent = label + ' 퀴즈 시작 →';
+}
+function startQuiz() {
+  let pool = ALL_QUESTIONS.filter(q => qVendors.includes(q.vendor));
+  if (qDiff !== 'all') pool = pool.filter(q => q.diff === qDiff);
+  if (!pool.length) { alert('선택한 조건에 해당하는 문제가 없습니다.'); return; }
+  qQuestions = shuffle(pool).slice(0, Math.min(10, pool.length));
+  qIdx = 0; qAnswers = [];
+  showQScreen('q-screen-quiz');
+  renderQuestion();
+}
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [a[i],a[j]] = [a[j],a[i]]; }
+  return a;
+}
+function renderQuestion() {
+  qAnswered = false;
+  const q = qQuestions[qIdx];
+  const total = qQuestions.length;
+  document.getElementById('q-meta').textContent = 'Q' + (qIdx+1) + ' / ' + total;
+  document.getElementById('q-progress-fill').style.width = ((qIdx / total) * 100) + '%';
+  const diffLabel = q.diff === 'basic' ? '기초' : '심화';
+  const diffClass = q.diff === 'basic' ? 'diff-basic' : 'diff-advanced';
+  const optsHtml = q.options.map((opt, i) =>
+    `<button class="option-btn" onclick="selectAnswer(${i})">${String.fromCharCode(65+i)}. ${escHtml(opt)}</button>`
+  ).join('');
+  document.getElementById('q-body').innerHTML =
+    `<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+      <span class="category-badge badge-${q.vendor}">${q.vendor}</span>
+      <span class="diff-indicator ${diffClass}">${diffLabel}</span>
+    </div>
+    <p class="question-en">${escHtml(q.en)}</p>
+    <p class="question-kr">${escHtml(q.kr)}</p>
+    <div class="options-list">${optsHtml}</div>
+    <div class="explain-box" id="q-explain-box"><strong>해설 / Explanation:</strong><br>${escHtml(q.explain)}</div>
+    <button class="next-btn" id="q-next-btn" onclick="nextQuestion()">${qIdx < total-1 ? '다음 문제 →' : '결과 보기 →'}</button>`;
+}
+function selectAnswer(idx) {
+  if (qAnswered) return;
+  qAnswered = true;
+  const q = qQuestions[qIdx];
+  const isCorrect = idx === q.correct;
+  qAnswers.push({ q, chosen: idx, correct: isCorrect });
+  document.querySelectorAll('.option-btn').forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add('reveal-correct');
+    if (i === idx && !isCorrect) btn.classList.add('wrong');
+    if (i === idx && isCorrect) { btn.classList.remove('reveal-correct'); btn.classList.add('correct'); }
+  });
+  document.getElementById('q-explain-box').classList.add('visible');
+  document.getElementById('q-next-btn').classList.add('visible');
+}
+function nextQuestion() {
+  qIdx++;
+  if (qIdx >= qQuestions.length) showResult();
+  else renderQuestion();
+}
+function showResult() {
+  const correct = qAnswers.filter(a => a.correct).length;
+  const total = qAnswers.length;
+  const pct = Math.round((correct / total) * 100);
+  let comment = pct >= 90 ? '완벽합니다! Distribution PM 준비 완료 수준이에요.' : pct >= 70 ? '좋은 성적입니다. 틀린 문제 위주로 복습하면 완벽해질 거예요.' : pct >= 50 ? '기본기는 갖췄습니다. 심화 내용 위주로 추가 학습이 필요해요.' : '아직 학습이 더 필요합니다. NotebookLM 자료와 함께 복습해 보세요.';
+  document.getElementById('q-result-score').textContent = pct + '%';
+  document.getElementById('q-result-fraction').textContent = correct + ' / ' + total + ' 정답';
+  document.getElementById('q-result-comment').textContent = comment;
+  document.getElementById('q-stat-correct').textContent = correct;
+  document.getElementById('q-stat-wrong').textContent = total - correct;
+  document.getElementById('q-stat-pct').textContent = pct + '%';
+  document.getElementById('q-review-list').innerHTML = qAnswers.map((a, i) => {
+    const cls = a.correct ? 'ok' : 'bad';
+    const yourAns = a.q.options[a.chosen];
+    const rightAns = a.q.options[a.q.correct];
+    return `<div class="review-item ${cls}"><div class="review-q">Q${i+1}. ${escHtml(a.q.en)}</div><div>${a.correct ? `<span class="review-ans-ok">✓ ${escHtml(yourAns)}</span>` : `<span class="review-ans-wrong">✗ 선택: ${escHtml(yourAns)}</span> → <span class="review-ans-correct">정답: ${escHtml(rightAns)}</span>`}</div></div>`;
+  }).join('');
+
+  // Save quiz result to history
+  saveHistoryItem({ toolType: 'quiz', vendor: qVendors.join(', '), title: `퀴즈 결과 ${pct}% — ${qVendors.join('+')}`, sub: `${correct}/${total} 정답`, content: '' });
+
+  showQScreen('q-screen-result');
+}
+function retryQuiz() { startQuiz(); }
+function qGoHome() { showQScreen('q-screen-home'); }
+function quitQuiz() { showQScreen('q-screen-home'); }
+function showQScreen(id) {
+  document.querySelectorAll('.quiz-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ══════════ DEAL TRACKER ══════════
+let dealFilter = 'all';
+
+function getDeals() { try { return JSON.parse(localStorage.getItem('dpm_deals') || '[]'); } catch { return []; } }
+function saveDeals(arr) {
+  localStorage.setItem('dpm_deals', JSON.stringify(arr));
+  updateDealBadge();
+  const gsUrl = getSettings().gsUrl;
+  if (gsUrl) fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'deals', deals: arr }) }).catch(()=>{});
+}
+function updateDealBadge() {
+  const badge = document.getElementById('deal-badge');
+  if (badge) badge.textContent = getDeals().length;
+}
+
+const STATUS_LABELS = {
+  pending:'대기중', submitted:'제출됨', approved:'승인됨',
+  rejected:'반려', closed_won:'수주', closed_lost:'실패'
+};
+
+function setDealFilter(el, f) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  dealFilter = f;
+  renderDealList();
+}
+
+function renderDealList() {
+  const deals = getDeals();
+  const filtered = dealFilter === 'all' ? deals : deals.filter(d => d.status === dealFilter);
+
+  // stats
+  const won = deals.filter(d => d.status === 'closed_won');
+  const wonAmt = won.reduce((s, d) => s + (Number(d.amount) || 0), 0);
+  document.getElementById('ds-total').textContent = deals.length;
+  document.getElementById('ds-approved').textContent = deals.filter(d => d.status === 'approved').length;
+  document.getElementById('ds-won').textContent = won.length;
+  document.getElementById('ds-amount').textContent = '₩' + wonAmt.toLocaleString('ko-KR') + '만';
+
+  const tbody = document.getElementById('deal-tbody');
+  const emptyMsg = document.getElementById('deal-empty-msg');
+  if (!filtered.length) {
+    tbody.innerHTML = '';
+    emptyMsg.classList.remove('hidden');
+    return;
+  }
+  emptyMsg.classList.add('hidden');
+  tbody.innerHTML = filtered.map(d => `
+    <tr>
+      <td><span class="category-badge badge-${d.vendor === 'Dell Technologies' ? 'Dell' : d.vendor}">${d.vendor}</span></td>
+      <td>${escHtml(d.reseller || '—')}</td>
+      <td>${escHtml(d.customer || '—')}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(d.product || '')}">${escHtml(d.product || '—')}</td>
+      <td class="deal-amount">${d.amount ? '₩' + Number(d.amount).toLocaleString('ko-KR') + '만' : '—'}</td>
+      <td><span class="status-badge status-${d.status}">${STATUS_LABELS[d.status] || d.status}</span></td>
+      <td style="color:var(--text3);font-size:12px;">${d.regDate || '—'}</td>
+      <td style="color:var(--text3);font-size:12px;">${d.closeDate || '—'}</td>
+      <td>
+        <div class="deal-actions-row">
+          <button class="deal-edit-btn" onclick="editDeal(${d.id})">수정</button>
+          <button class="deal-del-btn" onclick="deleteDeal(${d.id})">삭제</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // Sync to sheets if configured — now handled by saveDeals()
+}
+
+function openDealModal(id) {
+  document.getElementById('deal-modal-title').textContent = id ? '딜 수정' : '딜 등록';
+  document.getElementById('dm-id').value = id || '';
+  if (id) {
+    const d = getDeals().find(x => x.id === id);
+    if (!d) return;
+    document.getElementById('dm-vendor').value = d.vendor;
+    document.getElementById('dm-status').value = d.status;
+    document.getElementById('dm-reseller').value = d.reseller || '';
+    document.getElementById('dm-customer').value = d.customer || '';
+    document.getElementById('dm-product').value = d.product || '';
+    document.getElementById('dm-amount').value = d.amount || '';
+    document.getElementById('dm-closedate').value = d.closeDate || '';
+    document.getElementById('dm-note').value = d.note || '';
+  } else {
+    ['dm-reseller','dm-customer','dm-product','dm-amount','dm-closedate','dm-note'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('dm-vendor').value = 'NVIDIA';
+    document.getElementById('dm-status').value = 'submitted';
+  }
+  document.getElementById('deal-modal').classList.remove('hidden');
+}
+function closeDealModal() { document.getElementById('deal-modal').classList.add('hidden'); }
+function editDeal(id) { openDealModal(id); }
+function deleteDeal(id) {
+  if (!confirm('이 딜을 삭제할까요?')) return;
+  saveDeals(getDeals().filter(d => d.id !== id));
+  renderDealList();
+}
+function saveDeal() {
+  const id = document.getElementById('dm-id').value;
+  const deal = {
+    id: id ? Number(id) : Date.now(),
+    vendor: document.getElementById('dm-vendor').value,
+    status: document.getElementById('dm-status').value,
+    reseller: document.getElementById('dm-reseller').value.trim(),
+    customer: document.getElementById('dm-customer').value.trim(),
+    product: document.getElementById('dm-product').value.trim(),
+    amount: document.getElementById('dm-amount').value,
+    closeDate: document.getElementById('dm-closedate').value,
+    note: document.getElementById('dm-note').value.trim(),
+    regDate: id ? (getDeals().find(d => d.id === Number(id))?.regDate || new Date().toLocaleDateString('ko-KR')) : new Date().toLocaleDateString('ko-KR')
+  };
+  const deals = getDeals();
+  if (id) {
+    const idx = deals.findIndex(d => d.id === Number(id));
+    if (idx !== -1) deals[idx] = deal; else deals.unshift(deal);
+  } else { deals.unshift(deal); }
+  saveDeals(deals);
+  closeDealModal();
+  renderDealList();
+  showToast('딜이 저장되었습니다 ✓');
+}
+
+
+
+// ══════════ MDF ══════════
+function getMdfItems() { try { return JSON.parse(localStorage.getItem('dpm_mdf') || '[]'); } catch { return []; } }
+function saveMdfItems(arr) {
+  localStorage.setItem('dpm_mdf', JSON.stringify(arr));
+  const gsUrl = getSettings().gsUrl;
+  if (gsUrl) fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'mdf', items: arr }) }).catch(()=>{});
+}
+function getMdfBudget() { try { return JSON.parse(localStorage.getItem('dpm_mdf_budget') || '{"nvidia":0,"dell":0,"unity":0,"other":0}'); } catch { return {nvidia:0,dell:0,unity:0,other:0}; } }
+function saveMdfBudgetData(b) {
+  localStorage.setItem('dpm_mdf_budget', JSON.stringify(b));
+  const gsUrl = getSettings().gsUrl;
+  if (gsUrl) fetch(gsUrl, { method:'POST', body: JSON.stringify({ type:'mdf_budget', ...b }) }).catch(()=>{});
+}
+
+const MDF_STATUS_LABELS = { planned:'계획됨', approved:'승인됨', executed:'집행완료', rejected:'반려' };
+
+function renderMdfSummary() {
+  const items = getMdfItems();
+  const budget = getMdfBudget();
+  const totalBudget = Object.values(budget).reduce((s, v) => s + (Number(v) || 0), 0);
+  const used = items.filter(i => i.status === 'executed').reduce((s, i) => s + (Number(i.amount) || 0), 0);
+  const remaining = totalBudget - used;
+  const pct = totalBudget ? Math.round((used / totalBudget) * 100) : 0;
+
+  document.getElementById('mdf-budget-total').textContent = '₩' + totalBudget.toLocaleString('ko-KR') + '만';
+  document.getElementById('mdf-used').textContent = '₩' + used.toLocaleString('ko-KR') + '만';
+  document.getElementById('mdf-remaining').textContent = '₩' + Math.max(0, remaining).toLocaleString('ko-KR') + '만';
+  document.getElementById('mdf-pct-label').textContent = pct + '%';
+  const fill = document.getElementById('mdf-prog-fill');
+  fill.style.width = Math.min(pct, 100) + '%';
+  fill.className = 'mdf-prog-fill' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warning' : '');
+
+  const list = document.getElementById('mdf-list');
+  if (!items.length) {
+    list.innerHTML = '<div class="deal-empty">등록된 MDF 활동이 없습니다.<br><strong>+ 활동 추가</strong> 버튼으로 추가하세요.</div>';
+    return;
+  }
+  list.innerHTML = items.map(item => `
+    <div class="mdf-item">
+      <div class="mdf-item-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span class="category-badge badge-${item.vendor === 'Dell Technologies' ? 'Dell' : item.vendor}">${item.vendor}</span>
+            <span class="mdf-category-chip">${escHtml(item.category)}</span>
+            <span class="status-badge status-${item.status}">${MDF_STATUS_LABELS[item.status] || item.status}</span>
+          </div>
+          <div class="mdf-item-title">${escHtml(item.title)}</div>
+          <div class="mdf-item-meta">
+            ${item.partner ? '<span>👥 ' + escHtml(item.partner) + '</span>' : ''}
+            ${item.date ? '<span>📅 ' + item.date + '</span>' : ''}
+            ${item.note ? '<span>📝 ' + escHtml(item.note.slice(0,40)) + (item.note.length > 40 ? '…' : '') + '</span>' : ''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <span class="mdf-amount-badge">₩${Number(item.amount || 0).toLocaleString('ko-KR')}만</span>
+          <div class="deal-actions-row">
+            <button class="deal-edit-btn" onclick="editMdfItem(${item.id})">수정</button>
+            <button class="deal-del-btn" onclick="deleteMdfItem(${item.id})">삭제</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // Sync handled by saveMdfItems()
+}
+
+function openMdfModal(id) {
+  document.getElementById('mdf-modal-title').textContent = id ? 'MDF 활동 수정' : 'MDF 활동 추가';
+  document.getElementById('mm-id').value = id || '';
+  if (id) {
+    const item = getMdfItems().find(x => x.id === id);
+    if (!item) return;
+    document.getElementById('mm-vendor').value = item.vendor;
+    document.getElementById('mm-category').value = item.category;
+    document.getElementById('mm-title').value = item.title || '';
+    document.getElementById('mm-amount').value = item.amount || '';
+    document.getElementById('mm-status').value = item.status;
+    document.getElementById('mm-date').value = item.date || '';
+    document.getElementById('mm-partner').value = item.partner || '';
+    document.getElementById('mm-note').value = item.note || '';
+  } else {
+    ['mm-title','mm-amount','mm-date','mm-partner','mm-note'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('mm-vendor').value = 'NVIDIA';
+    document.getElementById('mm-status').value = 'planned';
+  }
+  document.getElementById('mdf-modal').classList.remove('hidden');
+}
+function closeMdfModal() { document.getElementById('mdf-modal').classList.add('hidden'); }
+function editMdfItem(id) { openMdfModal(id); }
+function deleteMdfItem(id) {
+  if (!confirm('이 MDF 활동을 삭제할까요?')) return;
+  saveMdfItems(getMdfItems().filter(i => i.id !== id));
+  renderMdfSummary();
+}
+function saveMdfItem() {
+  const id = document.getElementById('mm-id').value;
+  const item = {
+    id: id ? Number(id) : Date.now(),
+    vendor: document.getElementById('mm-vendor').value,
+    category: document.getElementById('mm-category').value,
+    title: document.getElementById('mm-title').value.trim(),
+    amount: document.getElementById('mm-amount').value,
+    status: document.getElementById('mm-status').value,
+    date: document.getElementById('mm-date').value,
+    partner: document.getElementById('mm-partner').value.trim(),
+    note: document.getElementById('mm-note').value.trim()
+  };
+  if (!item.title) { alert('활동명을 입력하세요.'); return; }
+  const items = getMdfItems();
+  if (id) {
+    const idx = items.findIndex(x => x.id === Number(id));
+    if (idx !== -1) items[idx] = item; else items.unshift(item);
+  } else { items.unshift(item); }
+  saveMdfItems(items);
+  closeMdfModal();
+  renderMdfSummary();
+  showToast('MDF 활동이 저장되었습니다 ✓');
+}
+
+function openMdfBudgetModal() {
+  const b = getMdfBudget();
+  document.getElementById('mb-nvidia').value = b.nvidia || '';
+  document.getElementById('mb-dell').value = b.dell || '';
+  document.getElementById('mb-unity').value = b.unity || '';
+  document.getElementById('mb-other').value = b.other || '';
+  document.getElementById('mdf-budget-modal').classList.remove('hidden');
+}
+function closeMdfBudgetModal() { document.getElementById('mdf-budget-modal').classList.add('hidden'); }
+function saveMdfBudget() {
+  saveMdfBudgetData({
+    nvidia: Number(document.getElementById('mb-nvidia').value) || 0,
+    dell: Number(document.getElementById('mb-dell').value) || 0,
+    unity: Number(document.getElementById('mb-unity').value) || 0,
+    other: Number(document.getElementById('mb-other').value) || 0
+  });
+  closeMdfBudgetModal();
+  renderMdfSummary();
+  showToast('MDF 예산이 저장되었습니다 ✓');
+}
+
+// ══════════ TOAST ══════════
+function showToast(msg) {
+  const el = document.getElementById('save-toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ══════════ INIT ══════════
+updateHistoryBadge();
+updateDealBadge();
+
+// topbar GS 상태 표시
+(function() {
+  const s = getSettings();
+  if (s.gsUrl) {
+    const el = document.getElementById('gs-topbar-status');
+    if (el) el.style.display = 'flex';
+  }
+})();
+
+// 구글시트 연결돼 있으면 앱 시작 시 자동으로 데이터 불러오기
+(async function initLoad() {
+  const gsUrl = getSettings().gsUrl;
+  if (!gsUrl) return;
+  try {
+    const [dealsRes, mdfRes, histRes, budgetRes] = await Promise.all([
+      fetch(gsUrl + '?type=deals'),
+      fetch(gsUrl + '?type=mdf'),
+      fetch(gsUrl + '?type=history'),
+      fetch(gsUrl + '?type=mdf_budget')
+    ]);
+    const deals  = await dealsRes.json();
+    const mdf    = await mdfRes.json();
+    const hist   = await histRes.json();
+    const budget = await budgetRes.json();
+
+    let updated = false;
+    if (deals.data?.length)  { localStorage.setItem('dpm_deals',   JSON.stringify(deals.data));  updateDealBadge();    updated = true; }
+    if (mdf.data?.length)    { localStorage.setItem('dpm_mdf',     JSON.stringify(mdf.data));    updated = true; }
+    if (hist.data?.length)   { localStorage.setItem('dpm_history', JSON.stringify(hist.data));   updateHistoryBadge(); updated = true; }
+    if (budget.data)         { localStorage.setItem('dpm_mdf_budget', JSON.stringify(budget.data)); updated = true; }
+
+    if (updated) {
+      lastSyncTime = new Date();
+      // 현재 활성 페이지가 deal/mdf이면 즉시 리렌더
+      const activePage = document.querySelector('.page.active');
+      if (activePage?.id === 'page-deal') renderDealList();
+      if (activePage?.id === 'page-mdf')  renderMdfSummary();
+      updateSyncTimestamp();
+    }
+  } catch { /* 시트 연결 실패 시 로컬 데이터 사용 */ }
+})();
+</script>
+</body>
+</html>
