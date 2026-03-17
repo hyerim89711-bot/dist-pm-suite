@@ -1537,7 +1537,7 @@ async function callAI(prompt) {
   },
     body: JSON.stringify({
       model:      'claude-sonnet-4-20250514',
-      max_tokens: 2000,
+      max_tokens: 4000,
       messages:   [{ role: 'user', content: prompt }]
     })
   });
@@ -1668,10 +1668,24 @@ emailBody의 줄바꿈은 \\n 으로 처리하고, 본문 안에 큰따옴표(")
     try {
       pData = JSON.parse(text);
     } catch (jsonErr) {
-      // JSON 파싱 실패 시 — 응답 미리보기와 함께 에러 표시
-      const preview = text.slice(0, 200).replace(/</g, '&lt;');
-      pShowError(`JSON 파싱 오류: ${jsonErr.message}\n\nAPI 응답 미리보기:\n${preview}`);
-      return;
+      // JSON이 잘린 경우 복구 시도
+      let recovered = false;
+      try {
+        let depth = 0, lastValid = -1;
+        for (let i = 0; i < text.length; i++) {
+          if (text[i] === '{') depth++;
+          else if (text[i] === '}') { depth--; if (depth === 0) lastValid = i; }
+        }
+        if (lastValid !== -1) {
+          pData = JSON.parse(text.slice(0, lastValid + 1));
+          recovered = true;
+        }
+      } catch(e2) { /* 복구 실패 */ }
+      if (!recovered) {
+        const preview = text.slice(0, 300).replace(/</g, '&lt;');
+        pShowError(`JSON 파싱 오류: ${jsonErr.message}\n\nAPI 응답 미리보기:\n${preview}`);
+        return;
+      }
     }
     renderProposal(pData, pLang);
     document.getElementById('p-resultSection').classList.add('visible');
