@@ -835,9 +835,9 @@
       <div class="settings-section">
         <div class="settings-section-title">🤖 AI API 설정</div>
         <div id="api-claude-section">
-          <label>Anthropic API Key</label>
-          <input type="password" id="s-apiKey" placeholder="sk-ant-..." oninput="saveSettings()" />
-          <p class="api-note">console.anthropic.com 에서 발급 · 브라우저 localStorage에만 저장, 외부 전송 없음</p>
+          <label>Google Gemini API Key</label>
+          <input type="password" id="s-apiKey" placeholder="AIza..." oninput="saveSettings()" />
+          <p class="api-note">aistudio.google.com 에서 발급 · 브라우저 localStorage에만 저장, 외부 전송 없음</p>
         </div>
       </div>
     </div>
@@ -1523,27 +1523,34 @@ function bSwitchLang(lang) {
 }
 
 // ── 공통 AI 호출 헬퍼 ──
-async function callAI(prompt) {
+async function callAI(prompt, maxTokens = 8000) {
   const apiKey = getApiKey();
-  if (!apiKey) throw new Error('설정에서 Anthropic API Key(sk-ant-...)를 먼저 입력해주세요.');
+  if (!apiKey) throw new Error('설정에서 Gemini API Key(AIza...)를 먼저 입력해주세요.');
 
-  const res = await fetch('https://anthropic-proxy.8989hye.workers.dev', {
-  method: 'POST',
-  headers: {
-    'Content-Type':      'application/json',
-    'x-api-key':         apiKey,
-    'anthropic-version': '2023-06-01',
-    // dangerous 헤더 삭제
-  },
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model:      'claude-sonnet-4-20250514',
-      max_tokens: 4000,
-      messages:   [{ role: 'user', content: prompt }]
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: maxTokens }
     })
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || 'Claude API 오류');
-  let text = data.content?.[0]?.text || '';
+
+  // 응답이 비어있거나 JSON이 아닌 경우 처리
+  const rawText = await res.text();
+  if (!rawText || rawText.trim() === '') {
+    throw new Error('API 응답이 비어있습니다. 잠시 후 다시 시도해주세요.');
+  }
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (e) {
+    throw new Error('API 서버 응답 오류: ' + rawText.slice(0, 200));
+  }
+  if (!res.ok) throw new Error(data.error?.message || 'Gemini API 오류');
+  let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  if (!text) throw new Error('Gemini 응답이 비어있습니다. 다시 시도해주세요.');
   // 마크다운 코드블록 제거
   text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
   // JSON 객체/배열 부분만 추출 (앞뒤 불필요한 텍스트 제거)
@@ -1664,7 +1671,7 @@ emailBody의 줄바꿈은 \\n 으로 처리하고, 본문 안에 큰따옴표(")
 {"ko":{"emailSubject":"제목","emailTo":"${resellerName} 담당자","emailBody":"본문 (줄바꿈=\\n)","report":{"intro":"소개 2-3문장","positioning":"포지셔닝 2-3문장","marginItems":[{"label":"항목","value":"값"},{"label":"항목","value":"값"},{"label":"항목","value":"값"}],"onboardingSteps":["1단계","2단계","3단계","4단계"],"nextSteps":["액션1","액션2","액션3"]}},"en":{"emailSubject":"subject","emailTo":"${resellerName} Team","emailBody":"body (newline=\\n)","report":{"intro":"intro 2-3 sentences","positioning":"positioning 2-3 sentences","marginItems":[{"label":"item","value":"val"},{"label":"item","value":"val"},{"label":"item","value":"val"}],"onboardingSteps":["step1","step2","step3","step4"],"nextSteps":["action1","action2","action3"]}}}`;
 
   try {
-    const text = await callAI(prompt);
+    const text = await callAI(prompt, 8000);
     try {
       pData = JSON.parse(text);
     } catch (jsonErr) {
@@ -2173,11 +2180,11 @@ function showToast(msg) {
 }
 
 // ══════════ INIT ══════════
-// 이전에 Gemini로 저장된 경우 Claude로 강제 초기화
+// 이전에 잘못 저장된 apiType 정리
 (function() {
   try {
     const s = JSON.parse(localStorage.getItem('dpm_settings') || '{}');
-    if (s.apiType === 'gemini') { s.apiType = 'claude'; localStorage.setItem('dpm_settings', JSON.stringify(s)); }
+    if (s.apiType === 'claude') { s.apiType = 'gemini'; localStorage.setItem('dpm_settings', JSON.stringify(s)); }
   } catch {}
 })();
 updateHistoryBadge();
