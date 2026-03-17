@@ -1684,7 +1684,7 @@ async function callAI(prompt, maxTokens = 8000) {
   const apiKey = getApiKey();
   if (!apiKey) throw new Error('설정에서 Gemini API Key(AIza...)를 먼저 입력해주세요.');
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key=${apiKey}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
